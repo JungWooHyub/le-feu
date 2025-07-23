@@ -3,57 +3,33 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  body {
-    @apply text-gray-900 antialiased;
-  }
-}
-
-@layer components {
-  .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-  
-  .btn-primary {
-    @apply btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
-  }
-  
-  .btn-secondary {
-    @apply btn bg-secondary-100 text-secondary-700 hover:bg-secondary-200 focus:ring-secondary-500;
-  }
-  
-  .btn-outline {
-    @apply btn border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500;
-  }
-  
-  .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
-  }
-  
-  .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
-           placeholder-gray-400 focus:outline-none focus:ring-primary-500 
-           focus:border-primary-500;
-  }
-  
-  .input-error {
-    @apply border-red-300 focus:ring-red-500 focus:border-red-500;
+  :root {
+    --color-primary-50: #fef2f2;
+    --color-primary-500: #ef4444;
+    --color-primary-600: #dc2626;
+    --color-primary-700: #b91c1c;
+    --color-secondary-50: #f8fafc;
+    --color-secondary-500: #64748b;
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .text-primary-500 {
+    color: var(--color-primary-500);
   }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
+  .bg-primary-50 {
+    background-color: var(--color-primary-50);
   }
-  
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
+  .bg-primary-500 {
+    background-color: var(--color-primary-500);
+  }
+  .bg-primary-600 {
+    background-color: var(--color-primary-600);
+  }
+  .bg-primary-700 {
+    background-color: var(--color-primary-700);
+  }
+  .bg-secondary-50 {
+    background-color: var(--color-secondary-50);
   }
 } 
