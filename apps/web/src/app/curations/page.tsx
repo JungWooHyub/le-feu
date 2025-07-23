@@ -1,4 +1,5 @@
 import { BookOpen, Star, Clock, User } from 'lucide-react';
+import Link from 'next/link';
 import MobileHeader from '../../components/MobileHeader';
 import MobileBottomNav from '../../components/MobileBottomNav';
 
@@ -137,89 +138,92 @@ export default function CurationsPage() {
             {/* 큐레이션 리스트 */}
             <div className="space-y-4 md:space-y-6">
               {curations.map((curation) => (
-                <article
+                <Link 
                   key={curation.id}
-                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                  href={`/curations/${curation.id}`}
+                  className="block"
                 >
-                  <div className="flex flex-col md:flex-row">
-                    {/* 이미지 */}
-                    <div className="w-full md:w-64 h-48 md:h-40 relative overflow-hidden bg-gray-200">
-                      <img 
-                        src={curation.image} 
-                        alt={curation.title}
-                        className="w-full h-full object-cover"
-                      />
-                      {curation.isFeature && (
-                        <div className="absolute top-3 left-3">
-                          <span className="bg-primary-500 text-white px-2 py-1 rounded text-xs font-medium">
-                            추천
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 콘텐츠 */}
-                    <div className="flex-1 p-4 md:p-6">
-                      <div className="flex flex-col h-full">
-                        {/* 카테고리 */}
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            curation.category === 'recipe' ? 'bg-green-100 text-green-800' :
-                            curation.category === 'technique' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {curation.category === 'recipe' ? '레시피' :
-                             curation.category === 'technique' ? '기법' : '기타'}
-                          </span>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Star className="w-3 h-3 mr-1" />
-                            난이도 {curation.difficulty}/5
+                  <article className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer">
+                    <div className="flex flex-col md:flex-row">
+                      {/* 이미지 */}
+                      <div className="w-full md:w-64 h-48 md:h-40 relative overflow-hidden bg-gray-200">
+                        <img 
+                          src={curation.image} 
+                          alt={curation.title}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                        {curation.isFeature && (
+                          <div className="absolute top-3 left-3">
+                            <span className="bg-primary-500 text-white px-2 py-1 rounded text-xs font-medium">
+                              추천
+                            </span>
                           </div>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {curation.cookingTime}분
-                          </div>
-                        </div>
+                        )}
+                      </div>
 
-                        {/* 제목 및 부제목 */}
-                        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-1 hover:text-primary-600 cursor-pointer">
-                          {curation.title}
-                        </h2>
-                        <h3 className="text-sm md:text-base text-gray-600 mb-3">
-                          {curation.subtitle}
-                        </h3>
-
-                        {/* 요약 */}
-                        <p className="text-sm md:text-base text-gray-700 mb-4 line-clamp-2 flex-1">
-                          {curation.summary}
-                        </p>
-
-                        {/* 하단 정보 */}
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                          <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <User className="w-4 h-4 mr-1" />
-                              {curation.author}
+                      {/* 콘텐츠 */}
+                      <div className="flex-1 p-4 md:p-6">
+                        <div className="flex flex-col h-full">
+                          {/* 카테고리 */}
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              curation.category === 'recipe' ? 'bg-green-100 text-green-800' :
+                              curation.category === 'technique' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {curation.category === 'recipe' ? '레시피' :
+                               curation.category === 'technique' ? '기법' : '기타'}
+                            </span>
+                            <div className="flex items-center text-xs text-gray-500">
+                              <Star className="w-3 h-3 mr-1" />
+                              난이도 {curation.difficulty}/5
                             </div>
-                            <span>조회 {curation.viewCount.toLocaleString()}</span>
-                            <span>좋아요 {curation.likeCount}</span>
+                            <div className="flex items-center text-xs text-gray-500">
+                              <Clock className="w-3 h-3 mr-1" />
+                              {curation.cookingTime}분
+                            </div>
                           </div>
 
-                          <div className="flex flex-wrap gap-1">
-                            {curation.tags.slice(0, 3).map((tag) => (
-                              <span
-                                key={tag}
-                                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-                              >
-                                #{tag}
-                              </span>
-                            ))}
+                          {/* 제목 및 부제목 */}
+                          <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-1 hover:text-primary-600 transition-colors">
+                            {curation.title}
+                          </h2>
+                          <h3 className="text-sm md:text-base text-gray-600 mb-3">
+                            {curation.subtitle}
+                          </h3>
+
+                          {/* 요약 */}
+                          <p className="text-sm md:text-base text-gray-700 mb-4 line-clamp-2 flex-1">
+                            {curation.summary}
+                          </p>
+
+                          {/* 하단 정보 */}
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm text-gray-500">
+                              <div className="flex items-center">
+                                <User className="w-4 h-4 mr-1" />
+                                {curation.author}
+                              </div>
+                              <span>조회 {curation.viewCount.toLocaleString()}</span>
+                              <span>좋아요 {curation.likeCount}</span>
+                            </div>
+
+                            <div className="flex flex-wrap gap-1">
+                              {curation.tags.slice(0, 3).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                                >
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </article>
+                  </article>
+                </Link>
               ))}
             </div>
 
