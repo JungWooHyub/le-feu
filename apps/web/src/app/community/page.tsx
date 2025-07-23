@@ -1,4 +1,6 @@
-import { Flame, MessageCircle, Heart, Bookmark, User, Clock, Pin } from 'lucide-react';
+import { MessageCircle, Heart, Bookmark, User, Clock, Pin } from 'lucide-react';
+import MobileHeader from '../../components/MobileHeader';
+import MobileBottomNav from '../../components/MobileBottomNav';
 
 // 임시 데이터
 const posts = [
@@ -80,38 +82,20 @@ const categories = [
 export default function CommunityPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Flame className="h-8 w-8 text-primary-500" />
-              <span className="text-2xl font-bold text-gray-900">le feu</span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <a href="/" className="text-gray-700 hover:text-primary-500 transition-colors">
-                홈
-              </a>
-              <a href="/curations" className="text-gray-700 hover:text-primary-500 transition-colors">
-                큐레이션
-              </a>
-              <a href="/community" className="text-primary-500 font-medium">
-                커뮤니티
-              </a>
-              <a href="/jobs" className="text-gray-700 hover:text-primary-500 transition-colors">
-                채용
-              </a>
-            </nav>
-            <button className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors">
-              로그인
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* 모바일 + 데스크톱 헤더 */}
+      <MobileHeader 
+        title="커뮤니티" 
+        rightAction={
+          <button className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center min-h-[36px]">
+            <MessageCircle className="w-4 h-4 mr-1" />
+            글쓰기
+          </button>
+        }
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 페이지 헤더 */}
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+        {/* 페이지 헤더 - 데스크톱에서만 표시 */}
+        <div className="hidden md:flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               커뮤니티
@@ -126,19 +110,19 @@ export default function CommunityPage() {
           </button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
           {/* 사이드바 */}
-          <aside className="lg:w-64 space-y-6">
+          <aside className="lg:w-64 space-y-4 md:space-y-6">
             {/* 카테고리 */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
                 카테고리
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-1 md:space-y-2">
                 {categories.map((category) => (
                   <button
                     key={category.id}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors min-h-[44px] ${
                       category.id === 'all'
                         ? 'bg-primary-50 text-primary-700'
                         : 'text-gray-600 hover:bg-gray-50'
@@ -146,24 +130,24 @@ export default function CommunityPage() {
                   >
                     <div className="flex items-center">
                       <span className="mr-2">{category.icon}</span>
-                      <span>{category.name}</span>
+                      <span className="text-sm md:text-base">{category.name}</span>
                     </div>
-                    <span className="text-sm text-gray-400">{category.count}</span>
+                    <span className="text-xs md:text-sm text-gray-400">{category.count}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* 인기 태그 */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
                 인기 태그
               </h3>
               <div className="flex flex-wrap gap-2">
                 {['창업', '파스타', '스테이크', '조언', '후기', '기초', '팁', '레시피'].map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-primary-50 hover:text-primary-600 cursor-pointer transition-colors"
+                    className="px-2 md:px-3 py-1 bg-gray-100 text-gray-600 text-xs md:text-sm rounded-full hover:bg-primary-50 hover:text-primary-600 cursor-pointer transition-colors min-h-[36px] flex items-center"
                   >
                     #{tag}
                   </span>
@@ -172,22 +156,22 @@ export default function CommunityPage() {
             </div>
 
             {/* 커뮤니티 통계 */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
                 커뮤니티 현황
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">전체 게시글</span>
-                  <span className="font-semibold">1,247</span>
+                  <span className="text-gray-600 text-sm">전체 게시글</span>
+                  <span className="font-semibold text-sm">1,247</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">활성 회원</span>
-                  <span className="font-semibold">892</span>
+                  <span className="text-gray-600 text-sm">활성 회원</span>
+                  <span className="font-semibold text-sm">892</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">오늘 새 글</span>
-                  <span className="font-semibold text-primary-600">23</span>
+                  <span className="text-gray-600 text-sm">오늘 새 글</span>
+                  <span className="font-semibold text-primary-600 text-sm">23</span>
                 </div>
               </div>
             </div>
@@ -196,13 +180,13 @@ export default function CommunityPage() {
           {/* 메인 콘텐츠 */}
           <main className="flex-1">
             {/* 필터 및 정렬 */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
                   총 <span className="font-semibold text-gray-900">1,247</span>개의 게시글
                 </span>
               </div>
-              <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] w-full sm:w-auto">
                 <option>최신순</option>
                 <option>인기순</option>
                 <option>댓글순</option>
@@ -210,16 +194,16 @@ export default function CommunityPage() {
             </div>
 
             {/* 게시글 리스트 */}
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {posts.map((post) => (
                 <article
                   key={post.id}
-                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 md:p-6"
                 >
-                  <div className="flex items-start space-x-4">
+                  <div className="flex items-start space-x-3 md:space-x-4">
                     <div className="flex-1">
                       {/* 게시글 헤더 */}
-                      <div className="flex items-center space-x-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         {post.isPinned && (
                           <Pin className="w-4 h-4 text-primary-500" />
                         )}
@@ -243,10 +227,10 @@ export default function CommunityPage() {
                       </div>
 
                       {/* 제목 및 내용 */}
-                      <h2 className="text-lg font-semibold text-gray-900 mb-2 hover:text-primary-600 cursor-pointer">
+                      <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-2 hover:text-primary-600 cursor-pointer">
                         {post.title}
                       </h2>
-                      <p className="text-gray-700 mb-3 line-clamp-2">
+                      <p className="text-gray-700 mb-3 line-clamp-2 text-sm md:text-base">
                         {post.content}
                       </p>
 
@@ -262,30 +246,30 @@ export default function CommunityPage() {
                         ))}
                       </div>
 
-                      {/* 게시글 정보 */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      {/* 하단 정보 */}
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                           <div className="flex items-center">
-                            <User className="w-4 h-4 mr-1" />
+                            <User className="w-3 h-3 mr-1" />
                             {post.isAnonymous ? '익명' : post.author}
                           </div>
                           <div className="flex items-center">
-                            <Clock className="w-4 h-4 mr-1" />
+                            <Clock className="w-3 h-3 mr-1" />
                             {post.createdAt}
                           </div>
                           <span>조회 {post.viewCount}</span>
                         </div>
 
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <div className="flex items-center hover:text-red-500 cursor-pointer transition-colors">
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <div className="flex items-center">
                             <Heart className="w-4 h-4 mr-1" />
                             {post.likeCount}
                           </div>
-                          <div className="flex items-center hover:text-blue-500 cursor-pointer transition-colors">
+                          <div className="flex items-center">
                             <MessageCircle className="w-4 h-4 mr-1" />
                             {post.commentCount}
                           </div>
-                          <div className="flex items-center hover:text-yellow-500 cursor-pointer transition-colors">
+                          <div className="flex items-center">
                             <Bookmark className="w-4 h-4 mr-1" />
                             {post.bookmarkCount}
                           </div>
@@ -297,29 +281,18 @@ export default function CommunityPage() {
               ))}
             </div>
 
-            {/* 페이지네이션 */}
-            <div className="flex justify-center mt-8">
-              <div className="flex space-x-1">
-                <button className="px-3 py-2 text-gray-500 border border-gray-300 rounded-l-lg hover:bg-gray-50">
-                  이전
-                </button>
-                <button className="px-3 py-2 bg-primary-500 text-white border border-primary-500">
-                  1
-                </button>
-                <button className="px-3 py-2 text-gray-700 border border-gray-300 hover:bg-gray-50">
-                  2
-                </button>
-                <button className="px-3 py-2 text-gray-700 border border-gray-300 hover:bg-gray-50">
-                  3
-                </button>
-                <button className="px-3 py-2 text-gray-500 border border-gray-300 rounded-r-lg hover:bg-gray-50">
-                  다음
-                </button>
-              </div>
+            {/* 더보기 버튼 */}
+            <div className="text-center mt-6 md:mt-8">
+              <button className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors min-h-[44px] w-full sm:w-auto">
+                더 많은 게시글 보기
+              </button>
             </div>
           </main>
         </div>
       </div>
+
+      {/* 모바일 하단 탭바 */}
+      <MobileBottomNav />
     </div>
   );
 } 

@@ -1,54 +1,56 @@
-import { Flame, Briefcase, MapPin, Clock, DollarSign, Star, Users, Building } from 'lucide-react';
+import { Briefcase, MapPin, Clock, DollarSign, Users } from 'lucide-react';
+import MobileHeader from '../../components/MobileHeader';
+import MobileBottomNav from '../../components/MobileBottomNav';
 
 // 임시 데이터
 const jobs = [
   {
     id: 1,
-    title: "이탈리안 레스토랑 수셰프 구인",
-    company: "라 포르케타",
-    location: "서울 강남구",
+    title: "미슐랭 스타 레스토랑 수셰프 모집",
+    company: "라 메종 블루",
+    location: "서울 강남",
     jobType: "정규직",
     position: "수셰프",
-    experienceLevel: "경력 3-5년",
+    experienceLevel: "경력 5년 이상",
     businessType: "restaurant",
-    cuisineTypes: ["이탈리안"],
-    salaryType: "월급",
-    salaryMin: 350,
-    salaryMax: 450,
+    cuisineTypes: ["프렌치", "파인다이닝"],
+    salaryType: "연봉",
+    salaryMin: 4500,
+    salaryMax: 6000,
     salaryCurrency: "만원",
-    isUrgent: true,
-    isFeatured: false,
-    description: "미슐랭 가이드 추천 레스토랑에서 함께 일할 열정적인 수셰프를 찾습니다. 정통 이탈리안 요리 경험자 우대...",
-    requirements: ["이탈리안 요리 경험 3년 이상", "칼 스킬 우수자", "원활한 의사소통 능력"],
-    benefits: ["4대보험", "식사제공", "연차", "성과급"],
-    applicationCount: 12,
-    viewCount: 156,
-    postedAt: "1일 전",
+    isUrgent: false,
+    isFeatured: true,
+    description: "미슐랭 가이드 스타 레스토랑에서 열정적인 수셰프를 찾습니다. 프렌치 요리 경험과 창의성을 갖춘 분을 환영합니다...",
+    requirements: ["프렌치 요리 경력 5년 이상", "파인다이닝 경험 필수", "리더십 및 팀워크", "영어 의사소통 가능"],
+    benefits: ["4대보험", "성과급", "해외연수", "식사제공"],
+    applicationCount: 45,
+    viewCount: 234,
+    postedAt: "3일 전",
     deadline: "2024-02-15"
   },
   {
     id: 2,
-    title: "호텔 일식 레스토랑 메인 셰프",
-    company: "신라호텔",
-    location: "서울 중구",
+    title: "이탈리안 파스타 전문 요리사",
+    company: "파스타 마에스트로",
+    location: "서울 이태원",
     jobType: "정규직",
-    position: "헤드셰프",
-    experienceLevel: "경력 7년+",
-    businessType: "hotel",
-    cuisineTypes: ["일식"],
-    salaryType: "연봉",
-    salaryMin: 6000,
-    salaryMax: 8000,
+    position: "요리사",
+    experienceLevel: "경력 3년 이상",
+    businessType: "restaurant",
+    cuisineTypes: ["이탈리안", "파스타"],
+    salaryType: "월급",
+    salaryMin: 300,
+    salaryMax: 400,
     salaryCurrency: "만원",
-    isUrgent: false,
-    isFeatured: true,
-    description: "5성급 호텔 일식당의 메인 셰프로 근무하실 분을 모집합니다. 숙련된 일식 요리 기술과 팀 관리 경험이 필요합니다...",
-    requirements: ["일식 경력 7년 이상", "오마카세 경험", "팀 관리 경험", "일본어 가능자 우대"],
-    benefits: ["4대보험", "연차", "교육지원", "해외연수 기회", "숙박시설 이용"],
-    applicationCount: 8,
-    viewCount: 245,
-    postedAt: "3일 전",
-    deadline: "2024-02-20"
+    isUrgent: true,
+    isFeatured: false,
+    description: "정통 이탈리안 파스타 전문점에서 함께할 요리사를 모집합니다. 파스타 제조부터 플레이팅까지 전 과정을 담당하게 됩니다...",
+    requirements: ["이탈리안 요리 경력 3년 이상", "파스타 제조 기술", "주 6일 근무 가능"],
+    benefits: ["4대보험", "식사제공", "교육지원"],
+    applicationCount: 12,
+    viewCount: 156,
+    postedAt: "1일 전",
+    deadline: "2024-01-25"
   },
   {
     id: 3,
@@ -111,38 +113,20 @@ const filters = {
 export default function JobsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Flame className="h-8 w-8 text-primary-500" />
-              <span className="text-2xl font-bold text-gray-900">le feu</span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <a href="/" className="text-gray-700 hover:text-primary-500 transition-colors">
-                홈
-              </a>
-              <a href="/curations" className="text-gray-700 hover:text-primary-500 transition-colors">
-                큐레이션
-              </a>
-              <a href="/community" className="text-gray-700 hover:text-primary-500 transition-colors">
-                커뮤니티
-              </a>
-              <a href="/jobs" className="text-primary-500 font-medium">
-                채용
-              </a>
-            </nav>
-            <button className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors">
-              로그인
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* 모바일 + 데스크톱 헤더 */}
+      <MobileHeader 
+        title="채용 정보" 
+        rightAction={
+          <button className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center min-h-[36px]">
+            <Briefcase className="w-4 h-4 mr-1" />
+            구인
+          </button>
+        }
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 페이지 헤더 */}
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+        {/* 페이지 헤더 - 데스크톱에서만 표시 */}
+        <div className="hidden md:flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               채용 정보
@@ -157,108 +141,99 @@ export default function JobsPage() {
           </button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
           {/* 필터 사이드바 */}
-          <aside className="lg:w-80 space-y-6">
+          <aside className="lg:w-80 space-y-4 md:space-y-6">
             {/* 빠른 필터 */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
                 빠른 필터
               </h3>
-              
-              {/* 고용 형태 */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">고용 형태</h4>
-                <div className="space-y-2">
-                  {filters.jobTypes.map((type) => (
-                    <label key={type.id} className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <input
-                          type="radio"
-                          name="jobType"
-                          defaultChecked={type.id === 'all'}
-                          className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{type.name}</span>
-                      </div>
-                      <span className="text-sm text-gray-400">{type.count}</span>
-                    </label>
-                  ))}
-                </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs md:text-sm font-medium hover:bg-red-100 transition-colors min-h-[40px]">
+                  🚨 급구 (22)
+                </button>
+                <button className="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-xs md:text-sm font-medium hover:bg-blue-100 transition-colors min-h-[40px]">
+                  ⭐ 추천 (5)
+                </button>
+                <button className="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-xs md:text-sm font-medium hover:bg-green-100 transition-colors min-h-[40px]">
+                  💰 고연봉 (12)
+                </button>
+                <button className="bg-purple-50 text-purple-700 px-3 py-2 rounded-lg text-xs md:text-sm font-medium hover:bg-purple-100 transition-colors min-h-[40px]">
+                  🏆 미슐랭 (3)
+                </button>
               </div>
-
-              {/* 포지션 */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">포지션</h4>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  {filters.positions.map((position) => (
-                    <option key={position.id} value={position.id}>
-                      {position.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 업종 */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">업종</h4>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  {filters.businessTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 지역 */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">지역</h4>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  {filters.locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button className="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition-colors">
-                필터 적용
-              </button>
             </div>
 
-            {/* 급여 정보 */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                평균 급여 정보
+            {/* 고용 형태 */}
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
+                고용 형태
               </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">헤드셰프</span>
-                  <span className="font-semibold">월 500-800만원</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">수셰프</span>
-                  <span className="font-semibold">월 350-500만원</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">요리사</span>
-                  <span className="font-semibold">월 250-350만원</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">주방보조</span>
-                  <span className="font-semibold">시급 1.2-1.5만원</span>
-                </div>
+              <div className="space-y-1 md:space-y-2">
+                {filters.jobTypes.map((type) => (
+                  <button
+                    key={type.id}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors min-h-[44px] ${
+                      type.id === 'all'
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-sm md:text-base">{type.name}</span>
+                    <span className="text-xs md:text-sm text-gray-400">{type.count}</span>
+                  </button>
+                ))}
               </div>
+            </div>
+
+            {/* 포지션 */}
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
+                포지션
+              </h3>
+              <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px]">
+                {filters.positions.map((position) => (
+                  <option key={position.id} value={position.id}>
+                    {position.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 업종 */}
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
+                업종
+              </h3>
+              <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px]">
+                {filters.businessTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 지역 */}
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
+                지역
+              </h3>
+              <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px]">
+                {filters.locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </aside>
 
-          {/* 메인 콘텐츠 */}
           <main className="flex-1">
             {/* 결과 요약 및 정렬 */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-gray-600">
                   총 <span className="font-semibold text-gray-900">156</span>개의 채용공고
                 </span>
@@ -271,7 +246,7 @@ export default function JobsPage() {
                   </span>
                 </div>
               </div>
-              <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] w-full sm:w-auto">
                 <option>최신순</option>
                 <option>급여순</option>
                 <option>마감임박순</option>
@@ -280,106 +255,102 @@ export default function JobsPage() {
             </div>
 
             {/* 채용공고 리스트 */}
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {jobs.map((job) => (
                 <article
                   key={job.id}
-                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 md:p-6"
                 >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        {job.isUrgent && (
-                          <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                            급구
-                          </span>
-                        )}
-                        {job.isFeatured && (
-                          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
-                            <Star className="w-3 h-3 mr-1" />
-                            추천
-                          </span>
-                        )}
-                        <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                          {job.jobType === 'full_time' ? '정규직' : 
-                           job.jobType === 'part_time' ? '파트타임' : '엑스트라'}
+                  {/* 헤더 */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        job.jobType === '정규직' ? 'bg-blue-100 text-blue-800' :
+                        job.jobType === '파트타임' ? 'bg-green-100 text-green-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {job.jobType}
+                      </span>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                        {job.position}
+                      </span>
+                      {job.isUrgent && (
+                        <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">
+                          급구
                         </span>
-                      </div>
-
-                      <h2 className="text-xl font-bold text-gray-900 mb-2 hover:text-primary-600 cursor-pointer">
-                        {job.title}
-                      </h2>
-                      
-                      <div className="flex items-center space-x-4 text-gray-600 mb-3">
-                        <div className="flex items-center">
-                          <Building className="w-4 h-4 mr-1" />
-                          {job.company}
-                        </div>
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {job.location}
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-1" />
-                          {job.experienceLevel}
-                        </div>
-                      </div>
-
-                      <p className="text-gray-700 mb-4 line-clamp-2">
-                        {job.description}
-                      </p>
-
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {job.requirements.slice(0, 3).map((req, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded"
-                          >
-                            {req}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {job.benefits.slice(0, 4).map((benefit, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded"
-                          >
-                            {benefit}
-                          </span>
-                        ))}
-                      </div>
+                      )}
+                      {job.isFeatured && (
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">
+                          추천
+                        </span>
+                      )}
                     </div>
+                    <span className="text-xs text-gray-500">{job.postedAt}</span>
+                  </div>
 
-                    <div className="ml-6 text-right">
-                      <div className="text-lg font-bold text-gray-900 mb-1">
-                        {job.salaryType === '시급' 
-                          ? `시급 ${job.salaryMin.toLocaleString()}${job.salaryCurrency}`
-                          : `${job.salaryMin}-${job.salaryMax}${job.salaryCurrency}`
-                        }
-                      </div>
-                      <div className="text-sm text-gray-500 mb-3">
-                        {job.salaryType}
-                      </div>
-                      <button className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors text-sm">
-                        지원하기
-                      </button>
+                  {/* 제목 및 회사 */}
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2 hover:text-primary-600 cursor-pointer">
+                    {job.title}
+                  </h2>
+                  <div className="flex items-center text-gray-600 mb-3">
+                    <span className="font-medium text-sm md:text-base">{job.company}</span>
+                    <span className="mx-2">•</span>
+                    <div className="flex items-center text-sm">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {job.location}
                     </div>
                   </div>
 
-                  {/* 하단 정보 */}
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {job.postedAt}
-                      </div>
-                      <span>조회 {job.viewCount}</span>
-                      <span>지원 {job.applicationCount}명</span>
+                  {/* 급여 및 경력 */}
+                  <div className="flex flex-wrap items-center gap-4 mb-3 text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <DollarSign className="w-4 h-4 mr-1" />
+                      {job.salaryType} {job.salaryMin.toLocaleString()}
+                      {job.salaryMax && `~${job.salaryMax.toLocaleString()}`} {job.salaryCurrency}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      마감일: {job.deadline}
+                    <div className="flex items-center">
+                      <Users className="w-4 h-4 mr-1" />
+                      {job.experienceLevel}
+                    </div>
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      {job.deadline}까지
+                    </div>
+                  </div>
+
+                  {/* 설명 */}
+                  <p className="text-gray-700 mb-4 line-clamp-2 text-sm md:text-base">
+                    {job.description}
+                  </p>
+
+                  {/* 요구사항 */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">주요 요구사항</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {job.requirements.slice(0, 3).map((req, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                        >
+                          {req}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 하단 액션 */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>지원자 {job.applicationCount}명</span>
+                      <span>조회 {job.viewCount}회</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm min-h-[40px]">
+                        저장
+                      </button>
+                      <button className="bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium min-h-[40px]">
+                        지원하기
+                      </button>
                     </div>
                   </div>
                 </article>
@@ -387,14 +358,17 @@ export default function JobsPage() {
             </div>
 
             {/* 더보기 버튼 */}
-            <div className="text-center mt-8">
-              <button className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="text-center mt-6 md:mt-8">
+              <button className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors min-h-[44px] w-full sm:w-auto">
                 더 많은 채용공고 보기
               </button>
             </div>
           </main>
         </div>
       </div>
+
+      {/* 모바일 하단 탭바 */}
+      <MobileBottomNav />
     </div>
   );
 } 
