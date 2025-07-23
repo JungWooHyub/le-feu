@@ -270,7 +270,8 @@ docs(readme): update installation guide
 
 프로젝트에 대한 질문이나 제안사항이 있으시면 다음을 통해 연락해 주세요:
 
-- 이메일: contact@lefeu.kr
+- 이메일: wjddnguiq0121@gmail.com
+- 전화번호 : 010-4042-9481
 - GitHub Issues: [Issues](https://github.com/le-feu/le-feu/issues)
 
 ---
