@@ -53,6 +53,10 @@ le-feu/
 │   ├── auth/                # 인증 로직
 │   ├── utils/               # 공통 유틸리티
 │   └── config/              # 공통 설정
+├── database/
+│   ├── schema/              # 데이터베이스 스키마 파일
+│   └── migrations/          # 마이그레이션 파일
+├── scripts/                 # 유틸리티 스크립트
 ├── .vooster/                # Vooster AI 프로젝트 설정
 └── docs/                    # 프로젝트 문서
 ```
@@ -61,53 +65,156 @@ le-feu/
 
 ### 필수 요구사항
 
-- Node.js 18.0.0+
-- pnpm 8.0.0+
+- Node.js 18.0.0+ (권장: 18.17.0+)
+- pnpm 8.0.0+ (권장) 또는 npm
 
 ### 설치
 
 ```bash
 # 의존성 설치
-pnpm install
+npm install  # 또는 pnpm install
 
 # 환경변수 설정
 cp .env.example .env.local
 # .env.local 파일을 편집하여 필요한 환경변수를 설정하세요
 
 # 개발 서버 실행
-pnpm dev
+npm run dev  # 또는 pnpm dev
 ```
 
 ### 환경변수 설정
 
 `.env.local` 파일에 다음 환경변수들을 설정해야 합니다:
 
-- **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- **Firebase**: `NEXT_PUBLIC_FIREBASE_*`, `FIREBASE_ADMIN_*`
-- **SendGrid**: `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`
-- **Cloudinary**: `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-- **Airtable**: `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`
+#### Supabase (필수)
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+#### Firebase Auth (필수)
+```bash
+NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_ADMIN_PRIVATE_KEY=your-admin-private-key
+FIREBASE_ADMIN_CLIENT_EMAIL=your-admin-client-email
+```
+
+#### 기타 서비스 (선택)
+```bash
+# SendGrid
+SENDGRID_API_KEY=your-sendgrid-api-key
+SENDGRID_FROM_EMAIL=noreply@lefeu.kr
+
+# Cloudinary
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-api-key
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+
+# Airtable
+AIRTABLE_API_KEY=your-airtable-api-key
+AIRTABLE_BASE_ID=your-airtable-base-id
+
+# Analytics
+NEXT_PUBLIC_GA_TRACKING_ID=your-ga-tracking-id
+```
+
+## Supabase 설정 가이드
+
+### 1. Supabase 프로젝트 생성
+
+1. [Supabase](https://supabase.com)에 가입하고 새 프로젝트를 생성합니다.
+2. 프로젝트 대시보드에서 다음 정보를 확인합니다:
+   - **Project URL**: `Settings > API > Project URL`
+   - **anon key**: `Settings > API > Project API keys > anon public`
+   - **service_role key**: `Settings > API > Project API keys > service_role`
+
+### 2. 환경변수 설정
+
+```bash
+# .env.local 파일에 추가
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+### 3. 연결 테스트
+
+```bash
+# Supabase 연결 테스트 실행
+npm run test:supabase
+```
+
+### 4. 데이터베이스 스키마 적용
+
+```bash
+# 스키마 적용
+npm run db:schema
+
+# 스키마 테스트
+npm run test:schema
+```
+
+## 데이터베이스 스키마
+
+le feu 플랫폼은 4개 핵심 도메인을 중심으로 설계된 PostgreSQL 데이터베이스를 사용합니다:
+
+### 핵심 테이블
+
+1. **사용자 관리**
+   - `users`: 사용자 프로필 및 역할 정보
+
+2. **셰프 큐레이션**
+   - `curations`: 셰프 스토리, 레시피, 트렌드 콘텐츠
+
+3. **커뮤니티**
+   - `community_posts`: 게시글
+   - `community_comments`: 댓글 (대댓글 지원)
+   - `community_likes`: 좋아요
+   - `community_bookmarks`: 북마크
+
+4. **채용 보드**
+   - `jobs`: 채용 공고
+   - `job_applications`: 지원서
+   - `job_saves`: 관심 공고 저장
+   - `job_salary_ranges`: 급여 범위 통계
+
+### 보안 및 성능
+
+- **Row Level Security (RLS)**: 모든 테이블에 적용
+- **인덱스 최적화**: GIN, BTREE 인덱스로 검색 성능 향상
+- **한국어 전문 검색**: pg_trgm 확장 활용
+- **자동 트리거**: 카운터 필드 및 타임스탬프 자동 관리
+
+상세한 스키마 정보는 [데이터베이스 스키마 문서](docs/DATABASE_SCHEMA.md)를 참조하세요.
 
 ### 스크립트
 
 ```bash
 # 개발 모드
-pnpm dev
+npm run dev
 
 # 빌드
-pnpm build
+npm run build
 
 # 타입 체크
-pnpm type-check
+npm run type-check
 
 # 린팅
-pnpm lint
+npm run lint
 
 # 테스트
-pnpm test
+npm run test
+
+# 데이터베이스
+npm run test:supabase    # Supabase 연결 테스트
+npm run db:schema        # 스키마 적용
+npm run test:schema      # 스키마 테스트
 
 # 클린
-pnpm clean
+npm run clean
 ```
 
 ## 개발 가이드라인

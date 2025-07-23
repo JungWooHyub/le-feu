@@ -13,12 +13,18 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "clean": "turbo run clean",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "test:supabase": "node scripts/test-supabase-connection.js",
+    "test:schema": "node scripts/test-schema.js",
+    "db:schema": "node scripts/apply-schema.js",
+    "supabase": "npx supabase"
   },
   "devDependencies": {
     "@turbo/gen": "^1.10.12",
+    "@types/minimatch": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
+    "dotenv": "^16.3.1",
     "eslint": "^8.48.0",
     "eslint-config-next": "13.4.19",
     "eslint-config-prettier": "^9.0.0",
@@ -27,12 +33,14 @@
     "prettier": "^3.0.0",
     "turbo": "^1.10.12"
   },
-  "packageManager": "pnpm@8.6.12",
+  "packageManager": "npm@8.19.4",
   "engines": {
     "node": ">=16.0.0",
-    "pnpm": ">=8.0.0"
+    "npm": ">=8.0.0"
   },
   "dependencies": {
-    "@types/minimatch": "^6.0.0"
+    "@supabase/supabase-js": "^2.52.0",
+    "firebase": "^12.0.0",
+    "firebase-admin": "^13.4.0"
   }
 }
