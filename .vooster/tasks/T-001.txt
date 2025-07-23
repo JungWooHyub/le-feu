@@ -1,0 +1,28 @@
+# Monorepo 초기화
+
+**Task ID:** T-001
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 6/10
+**Urgency:** 10/10
+**Dependencies:** None
+
+## Description
+
+# 설명
+Turborepo와 pnpm을 사용하여 프로젝트 루트에 apps/web, apps/admin, packages/ui, packages/utils 구조를 생성하고 모노레포를 초기화합니다.
+
+## 구현 세부사항
+1. 루트에 pnpm-workspace.yaml 생성하고 workspaces 항목에 apps/*, packages/* 추가
+2. turbo.json 파일 생성하여 Turborepo 파이프라인 설정
+3. apps/, packages/ 디렉토리 생성 후 빈 package.json 초기화
+4. config 패키지에 공통 ESLint, Prettier, TypeScript 설정 추가
+5. pnpm install 실행해 의존성 설치 확인
+
+## 테스트 전략
+- pnpm install 후 pnpm turbo run lint 및 build 명령어가 에러 없이 실행되는지 확인
+
+---
+
+**Created:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-23T06:15:34.997Z

@@ -1,0 +1,38 @@
+{
+  "name": "le-feu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "요식업 업계 종사자들을 위한 셰프 중심의 콘텐츠 큐레이션 + 업계 전용 커뮤니티 + 직무 맞춤 채용보드 플랫폼",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.10.12",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.48.0",
+    "eslint-config-next": "13.4.19",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.12"
+  },
+  "packageManager": "pnpm@8.6.12",
+  "engines": {
+    "node": ">=16.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@types/minimatch": "^6.0.0"
+  }
+}

@@ -1,0 +1,29 @@
+# CI/CD 및 Vercel 배포 연결
+
+**Task ID:** T-010
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 5/10
+**Urgency:** 9/10
+**Dependencies:** T-009
+
+## Description
+
+# 설명
+GitHub 저장소와 Vercel을 연동하여 Preview/Production 자동 배포 파이프라인을 설정하고 커밋/PR 시 자동 빌드 및 배포를 검증합니다.
+
+## 구현 세부사항
+1. GitHub Actions 또는 Vercel Git 연동 설정
+2. Vercel 프로젝트에 GitHub 리포 연결 및 환경변수 입력
+3. Preview 브랜치 및 Production 브랜치 배포 규칙 설정
+4. CI 단계에 lint, test, build 스크립트 실행 추가
+5. 배포 후 Health Check 스크립트 작성(예: /api/ping 호출)
+
+## 테스트 전략
+- PR 생성 시 Preview 배포 URL 자동 생성 및 확인
+- main 브랜치 머지 시 Production 배포 정상 동작 확인
+
+---
+
+**Created:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-23T06:15:34.997Z

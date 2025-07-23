@@ -1,0 +1,106 @@
+{
+  "totalCount": 10,
+  "downloadedAt": "2025-07-23T06:33:40.409Z",
+  "tasks": [
+    {
+      "taskId": "T-001",
+      "summary": "Monorepo 초기화",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 6,
+      "urgency": 10,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-002",
+      "summary": "Frontend 개발 환경 구축",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 5,
+      "urgency": 10,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-003",
+      "summary": "공통 UI 패키지(@repo/ui) 세팅",
+      "status": "BACKLOG",
+      "importance": "SHOULD",
+      "complexity": 5,
+      "urgency": 8,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-004",
+      "summary": "Supabase 프로젝트 세팅",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 4,
+      "urgency": 9,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-005",
+      "summary": "기본 테이블 스키마 설계",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 7,
+      "urgency": 9,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-006",
+      "summary": "Auth 인증 인프라 구축",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 6,
+      "urgency": 9,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-007",
+      "summary": "API 디렉토리 구성 + 예시 API 작성",
+      "status": "BACKLOG",
+      "importance": "SHOULD",
+      "complexity": 4,
+      "urgency": 8,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-008",
+      "summary": "환경변수 분리 및 설정 가이드",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 3,
+      "urgency": 8,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-009",
+      "summary": "RBAC 권한 설계 및 보안 룰 적용",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 7,
+      "urgency": 8,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    },
+    {
+      "taskId": "T-010",
+      "summary": "CI/CD 및 Vercel 배포 연결",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 5,
+      "urgency": 9,
+      "createdAt": "2025-07-23T06:15:34.997Z",
+      "updatedAt": "2025-07-23T06:15:34.997Z"
+    }
+  ]
+}

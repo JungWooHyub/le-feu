@@ -1,0 +1,29 @@
+# Supabase 프로젝트 세팅
+
+**Task ID:** T-004
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 4/10
+**Urgency:** 9/10
+**Dependencies:** T-003
+
+## Description
+
+# 설명
+Supabase 콘솔에서 프로젝트를 생성하고 PostgreSQL DB 인스턴스 및 서비스 키를 발급하여 연결을 확인합니다.
+
+## 구현 세부사항
+1. Supabase 계정 생성 후 새로운 프로젝트 생성
+2. 프로젝트 설정에서 ANON 키, SERVICE 키 확인 및 .env.local 예시 업데이트
+3. Supabase CLI 설치 및 `supabase login` 후 `supabase init` 실행
+4. Supabase 연결 테스트용 스크립트(`@supabase/supabase-js` 클라이언트) 작성 및 DB 연결 확인
+5. 프로젝트 설정값을 문서화(README.md에 기록)
+
+## 테스트 전략
+- Node 스크립트로 supabase 클라이언트 연결 후 schema fetch 테스트
+- Vercel에 환경변수 설정 후 Preview 배포에서 연결 확인
+
+---
+
+**Created:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-23T06:15:34.997Z

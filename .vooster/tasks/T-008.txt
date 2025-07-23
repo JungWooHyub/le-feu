@@ -1,0 +1,28 @@
+# 환경변수 분리 및 설정 가이드
+
+**Task ID:** T-008
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 3/10
+**Urgency:** 8/10
+**Dependencies:** T-007
+
+## Description
+
+# 설명
+.env.local, .env.example 파일 구조를 생성하고 Vercel 환경변수 적용 가이드를 문서화하여 비밀키 노출을 방지합니다.
+
+## 구현 세부사항
+1. 루트와 apps/web에 .env.example 파일 생성(KEY 설명 포함)
+2. .env.local Gitignore 처리 및 예시 복제 가이드 작성
+3. Vercel Dashboard 환경변수 설정 스크린샷 및 설명 추가(README.md)
+4. process.env 사용 섹션에 타입 선언 추가(next-env.d.ts)
+
+## 테스트 전략
+- 로컬 .env.local 설정 후 `process.env` 값이 앱에 정상 반영되는지 확인
+- Vercel Preview 배포에서 환경변수가 올바르게 적용되는지 확인
+
+---
+
+**Created:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-23T06:15:34.997Z

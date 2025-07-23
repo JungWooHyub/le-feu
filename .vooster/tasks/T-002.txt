@@ -1,0 +1,29 @@
+# Frontend 개발 환경 구축
+
+**Task ID:** T-002
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 5/10
+**Urgency:** 10/10
+**Dependencies:** T-001
+
+## Description
+
+# 설명
+apps/web 워크스페이스에 Next.js(App Router), Tailwind CSS, TypeScript 환경을 설정하여 초기 프론트엔드 개발 환경을 준비합니다.
+
+## 구현 세부사항
+1. apps/web 디렉토리에서 `npx create-next-app@latest --typescript --app .` 실행
+2. Tailwind CSS 설치(`pnpm install -D tailwindcss postcss autoprefixer`) 및 `npx tailwindcss init -p`로 설정 파일 생성
+3. tailwind.config.js에서 content 경로 등록(src/**/*)
+4. global CSS 파일에 @tailwind base, components, utilities 추가
+5. tsconfig.json에서 Path alias(@repo/*) 설정
+
+## 테스트 전략
+- `pnpm dev`로 개발 서버 실행 후 기본 페이지 렌더링 확인
+- Tailwind 클래스가 적용된 요소 스타일 검사
+
+---
+
+**Created:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-23T06:15:34.997Z

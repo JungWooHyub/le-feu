@@ -1,0 +1,29 @@
+# 기본 테이블 스키마 설계
+
+**Task ID:** T-005
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 7/10
+**Urgency:** 9/10
+**Dependencies:** T-004
+
+## Description
+
+# 설명
+users, curations, community_posts, jobs 등 핵심 테이블의 스키마를 Supabase DB에 설계·적용하고 인덱싱을 추가합니다.
+
+## 구현 세부사항
+1. SQL 스크립트 파일(schema.sql) 생성
+2. users 테이블: id, email, role, created_at 등 필수 컬럼 및 PK 설정
+3. curations, community_posts, jobs 테이블 각각 id, title, content, user_id, created_at, status 컬럼 정의
+4. 필터링에 필요한 컬럼(role, type, tags)에 GIN/BTREE 인덱스 추가
+5. supabase migrations 기능(`supabase db push`)으로 스키마 적용
+
+## 테스트 전략
+- Supabase 콘솔에서 테이블 및 인덱스 생성 여부 확인
+- 간단한 CRUD 쿼리 실행해 동작 확인
+
+---
+
+**Created:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-23T06:15:34.997Z
