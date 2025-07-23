@@ -112,7 +112,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <img 
-                  src="/logo_lefeu_0.png" 
+                  src="/logo_lefeu_0-removebg-preview.png" 
                   alt="le feu" 
                   className="h-5 w-5 md:h-6 md:w-6 object-contain" 
                 />
