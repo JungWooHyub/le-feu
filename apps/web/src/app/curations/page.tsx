@@ -3,61 +3,61 @@ import Link from 'next/link';
 import MobileHeader from '../../components/MobileHeader';
 import MobileBottomNav from '../../components/MobileBottomNav';
 
-// 임시 데이터
+// 한국 셰프 스토리 데이터
 const curations = [
   {
     id: 1,
-    title: "미슐랭 3스타 셰프의 파스타 비법",
-    subtitle: "이탈리아 현지에서 배운 정통 파스타 만들기",
-    author: "마르코 로시",
-    category: "recipe",
-    difficulty: 4,
-    cookingTime: 45,
-    image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=300&fit=crop",
-    summary: "30년 경력의 이탈리아 셰프가 공개하는 완벽한 파스타의 비밀. 면을 삶는 방법부터 소스 만들기까지...",
-    tags: ["파스타", "이탈리아", "미슐랭"],
-    viewCount: 12500,
-    likeCount: 320,
+    title: "안성재, 미슐랭을 정복한 한국인",
+    subtitle: "뉴욕에서 파리까지, 세계를 무대로 한 요리 여정",
+    author: "le feu 편집팀",
+    category: "story",
+    difficulty: 5,
+    readingTime: 12,
+    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
+    summary: "한국 요리의 세계화를 꿈꾸며 뉴욕과 파리를 넘나드는 안성재 셰프. 미슐랭 스타를 받기까지의 험난한 여정과 한국 요리에 대한 철학을 들어보세요.",
+    tags: ["안성재", "미슐랭", "한국요리", "세계화", "뉴욕"],
+    viewCount: 25400,
+    likeCount: 1250,
     isFeature: true
   },
   {
     id: 2,
-    title: "일식 장인의 스시 쌀 이야기",
-    subtitle: "200년 전통의 스시 쌀 준비법",
-    author: "다나카 히로시",
-    category: "technique",
-    difficulty: 5,
-    cookingTime: 120,
-    image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop",
-    summary: "도쿄 츠키지에서 3대째 이어온 스시 장인이 알려주는 완벽한 샤리(스시밥) 만들기...",
-    tags: ["스시", "일식", "장인"],
-    viewCount: 8200,
-    likeCount: 185,
+    title: "이연복, 중화요리 거장의 40년",
+    subtitle: "평생을 중화요리에 바친 마이스터의 이야기",
+    author: "le feu 편집팀",
+    category: "story",
+    difficulty: 4,
+    readingTime: 15,
+    image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=300&fit=crop",
+    summary: "40년간 중화요리 한 길만 걸어온 이연복 셰프. TV 스타가 되기 전, 중국 현지에서 배운 진짜 중화요리의 정수와 요리에 대한 장인정신을 만나보세요.",
+    tags: ["이연복", "중화요리", "장인정신", "40년", "마이스터"],
+    viewCount: 18600,
+    likeCount: 890,
     isFeature: false
   },
   {
     id: 3,
-    title: "프렌치 셰프의 소스 마스터클래스",
-    subtitle: "5가지 기본 소스로 완성하는 프렌치 요리",
-    author: "피에르 뒤봉",
-    category: "technique",
-    difficulty: 3,
-    cookingTime: 60,
-    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-    summary: "프랑스 요리의 기초인 5가지 마더 소스를 마스터하면 어떤 요리든 가능합니다...",
-    tags: ["프렌치", "소스", "기초"],
-    viewCount: 6800,
-    likeCount: 142,
+    title: "최현석, 혁신과 전통 사이에서",
+    subtitle: "기존 한식의 틀을 깨며 새로운 길을 만드는 셰프",
+    author: "le feu 편집팀",
+    category: "story",
+    difficulty: 4,
+    readingTime: 10,
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
+    summary: "전통 한식에 현대적 해석을 더하며 독자적인 요리 세계를 구축한 최현석 셰프. 끊임없는 도전과 실험 정신으로 한국 요리의 새로운 가능성을 제시합니다.",
+    tags: ["최현석", "혁신", "한식", "전통", "창의성"],
+    viewCount: 14200,
+    likeCount: 720,
     isFeature: false
   }
 ];
 
 const categories = [
   { id: 'all', name: '전체', count: 156 },
-  { id: 'recipe', name: '레시피', count: 89 },
-  { id: 'technique', name: '기법', count: 34 },
-  { id: 'story', name: '스토리', count: 23 },
-  { id: 'trend', name: '트렌드', count: 10 }
+  { id: 'story', name: '셰프 스토리', count: 89 },
+  { id: 'philosophy', name: '요리 철학', count: 34 },
+  { id: 'journey', name: '요리 여정', count: 23 },
+  { id: 'interview', name: '인터뷰', count: 10 }
 ];
 
 export default function CurationsPage() {
@@ -73,7 +73,7 @@ export default function CurationsPage() {
             셰프 큐레이션
           </h1>
           <p className="text-lg text-gray-600">
-            세계 최고 셰프들의 비법과 스토리를 만나보세요
+            한국 최고 셰프들의 인생 이야기와 요리 철학을 만나보세요
           </p>
         </div>
 
@@ -107,7 +107,7 @@ export default function CurationsPage() {
                 인기 태그
               </h3>
               <div className="flex flex-wrap gap-2">
-                {['이탈리아', '프렌치', '일식', '미슐랭', '파스타', '스시', '소스', '기초'].map((tag) => (
+                {['안성재', '이연복', '최현석', '미슐랭', '중화요리', '한식', '혁신', '장인정신'].map((tag) => (
                   <span
                     key={tag}
                     className="px-2 md:px-3 py-1 bg-gray-100 text-gray-600 text-xs md:text-sm rounded-full hover:bg-primary-50 hover:text-primary-600 cursor-pointer transition-colors min-h-[36px] flex items-center"
@@ -125,7 +125,7 @@ export default function CurationsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  총 <span className="font-semibold text-gray-900">156</span>개의 큐레이션
+                  총 <span className="font-semibold text-gray-900">156</span>개의 셰프 스토리
                 </span>
               </div>
               <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[44px] w-full sm:w-auto">
@@ -167,20 +167,20 @@ export default function CurationsPage() {
                           {/* 카테고리 */}
                           <div className="flex items-center space-x-2 mb-2">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              curation.category === 'recipe' ? 'bg-green-100 text-green-800' :
-                              curation.category === 'technique' ? 'bg-blue-100 text-blue-800' :
+                              curation.category === 'story' ? 'bg-purple-100 text-purple-800' :
+                              curation.category === 'philosophy' ? 'bg-blue-100 text-blue-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
-                              {curation.category === 'recipe' ? '레시피' :
-                               curation.category === 'technique' ? '기법' : '기타'}
+                              {curation.category === 'story' ? '셰프 스토리' :
+                               curation.category === 'philosophy' ? '요리 철학' : '기타'}
                             </span>
                             <div className="flex items-center text-xs text-gray-500">
                               <Star className="w-3 h-3 mr-1" />
-                              난이도 {curation.difficulty}/5
+                              깊이 {curation.difficulty}/5
                             </div>
                             <div className="flex items-center text-xs text-gray-500">
                               <Clock className="w-3 h-3 mr-1" />
-                              {curation.cookingTime}분
+                              {curation.readingTime}분 읽기
                             </div>
                           </div>
 
@@ -230,7 +230,7 @@ export default function CurationsPage() {
             {/* 더보기 버튼 */}
             <div className="text-center mt-6 md:mt-8">
               <button className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors min-h-[44px] w-full sm:w-auto">
-                더 많은 큐레이션 보기
+                더 많은 셰프 스토리 보기
               </button>
             </div>
           </main>
