@@ -49,26 +49,29 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
       {/* 헤더 */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <LeFeuLogo className="h-10 w-10" />
+              <LeFeuLogo className="h-8 w-8" />
               <span className="text-2xl font-bold text-gray-900">le feu</span>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <a href="#features" className="text-gray-700 hover:text-primary-500 transition-colors">
-                기능
+              <a href="/" className="text-primary-500 font-medium">
+                홈
               </a>
-              <a href="#community" className="text-gray-700 hover:text-primary-500 transition-colors">
+              <a href="/curations" className="text-gray-700 hover:text-primary-500 transition-colors">
+                큐레이션
+              </a>
+              <a href="/community" className="text-gray-700 hover:text-primary-500 transition-colors">
                 커뮤니티
               </a>
-              <a href="#jobs" className="text-gray-700 hover:text-primary-500 transition-colors">
+              <a href="/jobs" className="text-gray-700 hover:text-primary-500 transition-colors">
                 채용
               </a>
             </nav>
             <button className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors">
-              시작하기
+              로그인
             </button>
           </div>
         </div>
