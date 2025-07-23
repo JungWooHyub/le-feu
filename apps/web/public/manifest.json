@@ -12,13 +12,13 @@
   "categories": ["food", "business", "social"],
   "icons": [
     {
-      "src": "/logo_lefue_0.png",
+      "src": "/logo_lefeu_0.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo_lefue_0.png", 
+      "src": "/logo_lefeu_0.png", 
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

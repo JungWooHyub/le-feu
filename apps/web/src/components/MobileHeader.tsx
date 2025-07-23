@@ -42,7 +42,7 @@ export default function MobileHeader({
             ) : (
               <div className="flex items-center space-x-2">
                 <img 
-                  src="/logo_lefue_0.png" 
+                  src="/logo_lefeu_0.png" 
                   alt="le feu" 
                   className="h-7 w-7 object-contain" 
                 />
@@ -75,7 +75,7 @@ export default function MobileHeader({
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <img 
-                src="/logo_lefue_0.png" 
+                src="/logo_lefeu_0.png" 
                 alt="le feu" 
                 className="h-8 w-8 object-contain" 
               />
