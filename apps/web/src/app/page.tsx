@@ -1,4 +1,4 @@
-import { Users, Briefcase, BookOpen, Flame } from 'lucide-react';
+import { Users, Briefcase, BookOpen } from 'lucide-react';
 import MobileHeader from '../components/MobileHeader';
 import MobileBottomNav from '../components/MobileBottomNav';
 
@@ -111,7 +111,11 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <Flame className="h-5 w-5 md:h-6 md:w-6 text-primary-500" />
+                <img 
+                  src="/logo_lefue_0.png" 
+                  alt="le feu" 
+                  className="h-5 w-5 md:h-6 md:w-6 object-contain" 
+                />
                 <span className="text-lg md:text-xl font-bold">le feu</span>
               </div>
               <div className="text-xs md:text-sm text-gray-400">

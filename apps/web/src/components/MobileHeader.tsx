@@ -1,7 +1,5 @@
 'use client';
 
-import { Flame } from 'lucide-react';
-
 interface MobileHeaderProps {
   title: string;
   showBackButton?: boolean;
@@ -43,7 +41,11 @@ export default function MobileHeader({
               </button>
             ) : (
               <div className="flex items-center space-x-2">
-                <Flame className="h-7 w-7 text-primary-500" />
+                <img 
+                  src="/logo_lefue_0.png" 
+                  alt="le feu" 
+                  className="h-7 w-7 object-contain" 
+                />
                 <span className="text-lg font-bold text-gray-900">le feu</span>
               </div>
             )}
@@ -72,7 +74,11 @@ export default function MobileHeader({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <Flame className="h-8 w-8 text-primary-500" />
+              <img 
+                src="/logo_lefue_0.png" 
+                alt="le feu" 
+                className="h-8 w-8 object-contain" 
+              />
               <span className="text-2xl font-bold text-gray-900">le feu</span>
             </div>
             <nav className="flex space-x-8">

@@ -17,8 +17,8 @@ export const metadata = {
     telephone: false,
   },
   icons: {
-    icon: '/icon-192x192.png',
-    apple: '/icon-192x192.png',
+    icon: '/logo_lefue_0.png',
+    apple: '/logo_lefue_0.png',
   },
   viewport: {
     width: 'device-width',
@@ -43,8 +43,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="le feu" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/icon-192x192.png" />
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        <link rel="icon" href="/logo_lefue_0.png" />
+        <link rel="apple-touch-icon" href="/logo_lefue_0.png" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>
