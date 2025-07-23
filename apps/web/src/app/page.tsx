@@ -1,51 +1,6 @@
-import { Users, Briefcase, BookOpen } from 'lucide-react';
+import { Users, Briefcase, BookOpen, Flame } from 'lucide-react';
 import MobileHeader from '../components/MobileHeader';
 import MobileBottomNav from '../components/MobileBottomNav';
-
-// le feu 커스텀 로고 컴포넌트
-function LeFeuLogo({ className = "h-8 w-8" }: { className?: string }) {
-  return (
-    <svg 
-      className={className} 
-      viewBox="0 0 40 40" 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* 외곽 불꽃 */}
-      <path 
-        d="M20 4C16 8 14 12 14 16C14 18 15 20 17 21C15 19 14 17 14 15C14 13 15 11 17 9C18 7 19 5 20 4Z" 
-        className="fill-orange-500"
-      />
-      {/* 중간 불꽃 */}
-      <path 
-        d="M20 6C18 9 17 12 17 15C17 17 18 19 20 20C19 18 18 16 18 14C18 12 19 10 20 8C20.5 7 20.7 6.5 20 6Z" 
-        className="fill-red-500"
-      />
-      {/* 내부 불꽃 */}
-      <path 
-        d="M20 8C19 10 18.5 12 18.5 14C18.5 15.5 19 17 20 18C19.5 16.5 19.2 15 19.2 13.5C19.2 12 19.5 10.5 20 9C20.3 8.5 20.2 8.2 20 8Z" 
-        className="fill-yellow-400"
-      />
-      {/* 중앙 하이라이트 */}
-      <circle cx="20" cy="15" r="2" className="fill-yellow-200" opacity="0.8" />
-      
-      {/* 베이스 (잿불) */}
-      <ellipse cx="20" cy="22" rx="6" ry="2" className="fill-orange-300" opacity="0.6" />
-      
-      {/* 추가 불꽃 효과 */}
-      <path 
-        d="M26 12C25 14 24 16 24 18C24 19 24.5 20 25 20.5C24.5 19.5 24.2 18.5 24.2 17.5C24.2 16 24.8 14.5 25.5 13C26 12.2 26.2 11.8 26 12Z" 
-        className="fill-orange-400" 
-        opacity="0.7"
-      />
-      <path 
-        d="M14 12C15 14 16 16 16 18C16 19 15.5 20 15 20.5C15.5 19.5 15.8 18.5 15.8 17.5C15.8 16 15.2 14.5 14.5 13C14 12.2 13.8 11.8 14 12Z" 
-        className="fill-orange-400" 
-        opacity="0.7"
-      />
-    </svg>
-  );
-}
 
 export default function HomePage() {
   return (
@@ -156,7 +111,7 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <LeFeuLogo className="h-5 w-5 md:h-6 md:w-6" />
+                <Flame className="h-5 w-5 md:h-6 md:w-6 text-primary-500" />
                 <span className="text-lg md:text-xl font-bold">le feu</span>
               </div>
               <div className="text-xs md:text-sm text-gray-400">
