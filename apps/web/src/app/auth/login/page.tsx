@@ -3,14 +3,44 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Flame, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { 
-  signInWithEmailAndPassword, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  OAuthProvider, 
-  sendPasswordResetEmail
-} from 'firebase/auth';
-import { getFirebaseAuth } from '../../../lib/firebase';
+
+// Firebase는 클라이언트에서만 사용
+let firebaseAuth: any = null;
+let isFirebaseReady = false;
+
+// Firebase 동적 초기화 (안전)
+async function initializeFirebaseAuth() {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const { initializeApp, getApps } = await import('firebase/app');
+    const { getAuth } = await import('firebase/auth');
+    
+    const firebaseConfig = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ''
+    };
+    
+    // 환경변수가 제대로 설정되어 있는지 확인
+    if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+      console.warn('Firebase 환경변수가 설정되지 않았습니다.');
+      return null;
+    }
+    
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    firebaseAuth = getAuth(app);
+    isFirebaseReady = true;
+    
+    return firebaseAuth;
+  } catch (error) {
+    console.error('Firebase 초기화 실패:', error);
+    return null;
+  }
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,13 +57,15 @@ export default function LoginPage() {
     setError('');
     setMessage('');
 
-    if (!isFirebaseConfigured || !auth) {
-      setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-      setLoading(false);
-      return;
-    }
-
     try {
+      const auth = await initializeFirebaseAuth();
+      if (!auth) {
+        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+        setLoading(false);
+        return;
+      }
+
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -68,13 +100,15 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     
-    if (!isFirebaseConfigured || !auth) {
-      setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-      setLoading(false);
-      return;
-    }
-    
     try {
+      const auth = await initializeFirebaseAuth();
+      if (!auth) {
+        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+        setLoading(false);
+        return;
+      }
+
+      const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -110,13 +144,15 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     
-    if (!isFirebaseConfigured || !auth) {
-      setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-      setLoading(false);
-      return;
-    }
-    
     try {
+      const auth = await initializeFirebaseAuth();
+      if (!auth) {
+        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+        setLoading(false);
+        return;
+      }
+
+      const { signInWithPopup, OAuthProvider } = await import('firebase/auth');
       const provider = new OAuthProvider('apple.com');
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -154,15 +190,17 @@ export default function LoginPage() {
       return;
     }
 
-    if (!isFirebaseConfigured || !auth) {
-      setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
     try {
+      const auth = await initializeFirebaseAuth();
+      if (!auth) {
+        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      const { sendPasswordResetEmail } = await import('firebase/auth');
       await sendPasswordResetEmail(auth, email);
       setMessage('비밀번호 재설정 이메일이 발송되었습니다.');
     } catch (err: any) {

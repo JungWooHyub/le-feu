@@ -3,31 +3,35 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Flame, Mail, Lock, Eye, EyeOff, User, Building, Crown } from 'lucide-react';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, getAuth } from 'firebase/auth';
-import { initializeApp, getApps } from 'firebase/app';
-
-// Firebase 설정 검증
-const isFirebaseConfigured = !!(
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-  process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
-  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
-);
-
-// Firebase 설정 (개발용 기본값 포함)
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'demo-api-key',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'demo-project.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-project',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'demo-project.appspot.com',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:demo'
-};
-
-// Firebase 앱 초기화 (중복 방지)
-let auth: any = null;
-if (isFirebaseConfigured) {
-  const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-  auth = getAuth(app);
+// Firebase 동적 초기화 (안전)
+async function initializeFirebaseAuth() {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const { initializeApp, getApps } = await import('firebase/app');
+    const { getAuth } = await import('firebase/auth');
+    
+    const firebaseConfig = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ''
+    };
+    
+    // 환경변수가 제대로 설정되어 있는지 확인
+    if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+      console.warn('Firebase 환경변수가 설정되지 않았습니다.');
+      return null;
+    }
+    
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    return getAuth(app);
+  } catch (error) {
+    console.error('Firebase 초기화 실패:', error);
+    return null;
+  }
 }
 
 type UserRole = 'user' | 'employer' | 'curator';
@@ -117,7 +121,15 @@ export default function RegisterPage() {
     setError('');
     
     try {
+      const auth = await initializeFirebaseAuth();
+      if (!auth) {
+        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+        setLoading(false);
+        return;
+      }
+
       // Firebase Auth로 사용자 생성
+      const { createUserWithEmailAndPassword } = await import('firebase/auth');
       const userCredential = await createUserWithEmailAndPassword(
         auth, 
         formData.email, 
@@ -166,6 +178,14 @@ export default function RegisterPage() {
     setError('');
     
     try {
+      const auth = await initializeFirebaseAuth();
+      if (!auth) {
+        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+        setLoading(false);
+        return;
+      }
+
+      const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -191,6 +211,14 @@ export default function RegisterPage() {
     setError('');
     
     try {
+      const auth = await initializeFirebaseAuth();
+      if (!auth) {
+        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+        setLoading(false);
+        return;
+      }
+
+      const { signInWithPopup, OAuthProvider } = await import('firebase/auth');
       const provider = new OAuthProvider('apple.com');
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
