@@ -1,5 +1,6 @@
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { Providers } from '../components/providers/Providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -46,7 +47,11 @@ export default function RootLayout({
         <link rel="icon" href="/logo_lefeu_0-removebg-preview.png" />
         <link rel="apple-touch-icon" href="/logo_lefeu_0-removebg-preview.png" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   )
 } 
