@@ -84,6 +84,7 @@ npm run dev  # 또는 pnpm dev
 
 ### 환경변수 설정
 
+#### 로컬 개발환경
 `.env.local` 파일에 다음 환경변수들을 설정해야 합니다:
 
 #### Supabase (필수)
@@ -98,9 +99,34 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_ADMIN_PRIVATE_KEY=your-admin-private-key
-FIREBASE_ADMIN_CLIENT_EMAIL=your-admin-client-email
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour-private-key\n-----END PRIVATE KEY-----"
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
 ```
+
+#### Vercel 배포 환경변수 설정
+Vercel에 배포할 때는 다음 단계를 따르세요:
+
+1. **Vercel 대시보드에서 설정**:
+   - [Vercel Dashboard](https://vercel.com/dashboard) → 프로젝트 선택
+   - Settings → Environment Variables에서 필수 환경변수들을 추가
+
+2. **필수 환경변수**:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL
+   NEXT_PUBLIC_SUPABASE_ANON_KEY
+   SUPABASE_SERVICE_ROLE_KEY
+   NEXT_PUBLIC_FIREBASE_API_KEY
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID
+   FIREBASE_PROJECT_ID
+   FIREBASE_PRIVATE_KEY
+   FIREBASE_CLIENT_EMAIL
+   ```
+
+3. **환경별 설정**: Production과 Preview 환경을 분리하여 설정하세요.
+
+⚠️ **중요**: 환경변수가 설정되지 않으면 빌드가 실패합니다. 자세한 설정 방법은 [환경변수 설정 가이드](docs/ENVIRONMENT_SETUP.md#vercel-배포-설정)를 참조하세요.
 
 #### 기타 서비스 (선택)
 ```bash

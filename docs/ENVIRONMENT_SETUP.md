@@ -7,7 +7,8 @@
 2. [필수 설정](#필수-설정)
 3. [서비스별 설정](#서비스별-설정)
 4. [환경별 설정](#환경별-설정)
-5. [보안 주의사항](#보안-주의사항)
+5. [Vercel 배포 설정](#vercel-배포-설정)
+6. [보안 주의사항](#보안-주의사항)
 
 ---
 
@@ -133,6 +134,64 @@ NEXTAUTH_URL=https://lefeu.co
 
 ---
 
+## Vercel 배포 설정
+
+### 🚀 Vercel 환경변수 설정 방법
+
+#### 1. Vercel 대시보드에서 설정
+1. [Vercel 대시보드](https://vercel.com/dashboard)에서 프로젝트 선택
+2. Settings → Environment Variables로 이동
+3. 다음 필수 환경변수들을 추가:
+
+```env
+# Supabase (필수)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiI...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiI...
+
+# Firebase (필수)
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyC...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:...
+
+# Firebase Admin SDK (서버용)
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC..."
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+
+# 애플리케이션
+NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+```
+
+#### 2. Vercel CLI를 통한 설정 (선택사항)
+```bash
+# Vercel CLI 설치
+npm i -g vercel
+
+# 환경변수 설정
+vercel env add NEXT_PUBLIC_SUPABASE_URL
+vercel env add SUPABASE_SERVICE_ROLE_KEY
+vercel env add NEXT_PUBLIC_FIREBASE_API_KEY
+# ... 기타 필수 환경변수들
+```
+
+#### 3. 환경별 설정
+- **Preview**: 개발/테스트용 환경변수
+- **Production**: 실제 서비스용 환경변수
+
+⚠️ **중요**: Production과 Preview 환경의 환경변수는 반드시 분리하여 설정하세요.
+
+#### 4. 배포 후 확인
+배포가 성공하면 다음을 확인하세요:
+1. Build Logs에서 "✅ 환경변수 검증 완료" 메시지 확인
+2. 애플리케이션이 정상적으로 로드되는지 확인
+3. 인증 기능이 작동하는지 확인
+
+---
+
 ## 보안 주의사항
 
 ### ⚠️ 절대 금지사항
@@ -187,6 +246,11 @@ npm run test:env
    - Cloudinary 설정이 올바른지 확인
    - CORS 설정 확인
 
+4. **Vercel 배포 실패: "supabaseUrl is required"**
+   - Vercel 대시보드에서 환경변수가 올바르게 설정되었는지 확인
+   - 특히 `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` 확인
+   - 환경변수 값에 따옴표나 공백이 없는지 확인
+
 ---
 
 ## 추가 도움이 필요한 경우
@@ -195,6 +259,7 @@ npm run test:env
 - 🔥 [Firebase 문서](https://firebase.google.com/docs)
 - ☁️ [Cloudinary 문서](https://cloudinary.com/documentation)
 - 📬 [SendGrid 문서](https://docs.sendgrid.com/)
+- 🚀 [Vercel 환경변수 문서](https://vercel.com/docs/projects/environment-variables)
 
 ---
 

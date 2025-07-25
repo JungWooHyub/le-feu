@@ -1,4 +1,44 @@
 /** @type {import('next').NextConfig} */
+
+// 환경변수 검증 함수
+function validateEnvironmentVariables() {
+  const requiredEnvVars = [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY', 
+    'SUPABASE_SERVICE_ROLE_KEY'
+  ];
+
+  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    console.error('\n❌ 필수 환경변수가 설정되지 않았습니다:');
+    missingVars.forEach(varName => {
+      console.error(`   - ${varName}`);
+    });
+    
+    console.error('\n🔧 해결 방법:');
+    console.error('1. Vercel 대시보드에서 환경변수를 설정하세요.');
+    console.error('2. 로컬 개발시에는 .env.local 파일을 생성하세요.');
+    console.error('   cp .env.example .env.local');
+    console.error('\n📚 자세한 설정 방법: docs/ENVIRONMENT_SETUP.md\n');
+    
+    throw new Error(`필수 환경변수가 누락되었습니다: ${missingVars.join(', ')}`);
+  }
+  
+  // Supabase URL 형식 검증
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (supabaseUrl && !supabaseUrl.startsWith('https://') && !supabaseUrl.includes('supabase.co')) {
+    console.warn('⚠️  NEXT_PUBLIC_SUPABASE_URL 형식을 확인하세요. (예: https://your-project.supabase.co)');
+  }
+  
+  console.log('✅ 환경변수 검증 완료');
+}
+
+// 빌드 시 환경변수 검증 실행
+if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+  validateEnvironmentVariables();
+}
+
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
