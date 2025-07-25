@@ -86,4 +86,6 @@ next-env.d.ts
 .turbo
 
 # Sentry Config File
-.sentryclirc 
+.sentryclirc # Firebase Service Account Keys
+*.json
+le-feu-*.json
