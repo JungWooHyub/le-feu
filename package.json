@@ -16,7 +16,10 @@
     "test": "turbo run test",
     "test:supabase": "node scripts/test-supabase-connection.js",
     "test:schema": "node scripts/test-schema.js",
+    "test:env": "node scripts/validate-env.js",
     "db:schema": "node scripts/apply-schema.js",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel",
     "supabase": "npx supabase"
   },
   "devDependencies": {

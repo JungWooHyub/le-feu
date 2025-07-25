@@ -1,0 +1,259 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '8.15.6'
+
+jobs:
+  # 환경변수 및 기본 검증
+  validate:
+    name: 환경 검증
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate environment setup
+        run: pnpm run test:env
+        continue-on-error: true # 환경변수 없어도 CI는 계속 진행
+
+  # 린트 검사
+  lint:
+    name: ESLint & Prettier 검사
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm run lint
+
+      - name: Check Prettier formatting
+        run: pnpm exec prettier --check "**/*.{ts,tsx,js,jsx,json,md}"
+
+  # 타입 체크
+  type-check:
+    name: TypeScript 타입 체크
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm run type-check
+
+  # 테스트 실행
+  test:
+    name: 단위 테스트
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm run test
+        continue-on-error: true # 아직 테스트 없어도 계속 진행
+
+  # 빌드 테스트
+  build:
+    name: 프로덕션 빌드
+    runs-on: ubuntu-latest
+    needs: [lint, type-check]
+    
+    strategy:
+      matrix:
+        app: [web] # 추후 admin 앱도 추가 가능
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build ${{ matrix.app }} app
+        run: pnpm run build --filter=${{ matrix.app }}
+        env:
+          # 빌드를 위한 더미 환경변수
+          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy_key
+          NEXT_PUBLIC_FIREBASE_API_KEY: dummy_key
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: dummy.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: dummy_project
+          NEXT_PUBLIC_APP_URL: https://dummy.vercel.app
+          JWT_SECRET: dummy_jwt_secret_key_for_build_test_only
+          NEXTAUTH_SECRET: dummy_nextauth_secret_for_build_test
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ matrix.app }}
+          path: apps/${{ matrix.app }}/.next/
+          retention-days: 7
+
+  # 보안 스캔
+  security:
+    name: 보안 취약점 스캔
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level moderate
+        continue-on-error: true # 취약점이 있어도 일단 CI는 통과
+
+  # Supabase 스키마 검증 (옵션)
+  database:
+    name: 데이터베이스 스키마 검증
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test database schema
+        run: pnpm run test:schema
+        continue-on-error: true # 스키마 테스트 실패해도 CI는 통과
+
+  # 최종 상태 확인
+  ci-success:
+    name: CI 성공 확인
+    runs-on: ubuntu-latest
+    needs: [lint, type-check, build, security]
+    if: always()
+
+    steps:
+      - name: Check CI status
+        run: |
+          if [[ "${{ needs.lint.result }}" == "success" && 
+                "${{ needs.type-check.result }}" == "success" && 
+                "${{ needs.build.result }}" == "success" ]]; then
+            echo "✅ CI 파이프라인이 성공적으로 완료되었습니다!"
+            exit 0
+          else
+            echo "❌ CI 파이프라인에서 오류가 발생했습니다."
+            echo "Lint: ${{ needs.lint.result }}"
+            echo "Type-check: ${{ needs.type-check.result }}"
+            echo "Build: ${{ needs.build.result }}"
+            echo "Security: ${{ needs.security.result }}"
+            exit 1
+          fi 

@@ -11,9 +11,10 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.38.4",
     "clsx": "^2.0.0",
-    "firebase": "latest",
-    "firebase-admin": "latest",
+    "firebase": "^10.5.0",
+    "firebase-admin": "^11.10.1",
     "lucide-react": "^0.263.1",
     "next": "13.4.19",
     "react": "^18.2.0",
@@ -25,11 +26,14 @@
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "autoprefixer": "^10.4.15",
+    "bufferutil": "^4.0.9",
     "eslint": "^8.48.0",
     "eslint-config-next": "13.4.19",
     "eslint-plugin-prettier": "^5.5.3",
+    "null-loader": "^4.0.1",
     "postcss": "^8.4.28",
     "tailwindcss": "^3.3.3",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "utf-8-validate": "^6.0.5"
   }
 }

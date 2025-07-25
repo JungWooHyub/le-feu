@@ -3,6 +3,39 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Flame, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  OAuthProvider, 
+  sendPasswordResetEmail,
+  getAuth
+} from 'firebase/auth';
+import { initializeApp, getApps } from 'firebase/app';
+
+// Firebase 설정 검증
+const isFirebaseConfigured = !!(
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+  process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+);
+
+// Firebase 설정 (개발용 기본값 포함)
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'demo-api-key',
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'demo-project.firebaseapp.com',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-project',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'demo-project.appspot.com',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:demo'
+};
+
+// Firebase 앱 초기화 (중복 방지)
+let auth: any = null;
+if (isFirebaseConfigured) {
+  const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+  auth = getAuth(app);
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,12 +52,38 @@ export default function LoginPage() {
     setError('');
     setMessage('');
 
+    if (!isFirebaseConfigured || !auth) {
+      setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // TODO: Firebase Auth 연동 예정
-      setMessage('로그인 기능 구현 예정입니다.');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // 사용자 토큰 저장
+      const token = await user.getIdToken();
+      localStorage.setItem('auth_token', token);
+      
+      setMessage('로그인 성공!');
       setTimeout(() => router.push('/'), 1000);
-    } catch (err) {
-      setError('로그인 중 오류가 발생했습니다.');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      
+      // Firebase 에러 메시지 한국어 변환
+      let errorMessage = '로그인 중 오류가 발생했습니다.';
+      if (err.code === 'auth/user-not-found') {
+        errorMessage = '존재하지 않는 계정입니다.';
+      } else if (err.code === 'auth/wrong-password') {
+        errorMessage = '비밀번호가 올바르지 않습니다.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = '올바르지 않은 이메일 형식입니다.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = '너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -34,10 +93,38 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     
+    if (!isFirebaseConfigured || !auth) {
+      setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+      setLoading(false);
+      return;
+    }
+    
     try {
-      // TODO: Google 로그인 구현 예정
-      setMessage('Google 로그인 기능 구현 예정입니다.');
-    } catch (err) {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // 프로필 확인 - 처음 로그인이면 회원가입으로 리다이렉트
+      const profileResponse = await fetch('/api/auth/profile', {
+        headers: {
+          'Authorization': `Bearer ${await user.getIdToken()}`
+        }
+      });
+      
+      if (!profileResponse.ok) {
+        // 프로필이 없으면 회원가입으로 리다이렉트 (역할 선택)
+        router.push('/auth/register');
+        return;
+      }
+      
+      // 사용자 토큰 저장
+      const token = await user.getIdToken();
+      localStorage.setItem('auth_token', token);
+      
+      setMessage('Google 로그인 성공!');
+      setTimeout(() => router.push('/'), 1000);
+    } catch (err: any) {
+      console.error('Google login error:', err);
       setError('Google 로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -48,10 +135,38 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     
+    if (!isFirebaseConfigured || !auth) {
+      setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+      setLoading(false);
+      return;
+    }
+    
     try {
-      // TODO: Apple 로그인 구현 예정
-      setMessage('Apple 로그인 기능 구현 예정입니다.');
-    } catch (err) {
+      const provider = new OAuthProvider('apple.com');
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // 프로필 확인
+      const profileResponse = await fetch('/api/auth/profile', {
+        headers: {
+          'Authorization': `Bearer ${await user.getIdToken()}`
+        }
+      });
+      
+      if (!profileResponse.ok) {
+        // 프로필이 없으면 회원가입으로 리다이렉트
+        router.push('/auth/register');
+        return;
+      }
+      
+      // 사용자 토큰 저장
+      const token = await user.getIdToken();
+      localStorage.setItem('auth_token', token);
+      
+      setMessage('Apple 로그인 성공!');
+      setTimeout(() => router.push('/'), 1000);
+    } catch (err: any) {
+      console.error('Apple login error:', err);
       setError('Apple 로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -64,14 +179,28 @@ export default function LoginPage() {
       return;
     }
 
+    if (!isFirebaseConfigured || !auth) {
+      setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      // TODO: 비밀번호 재설정 구현 예정
-      setMessage('비밀번호 재설정 기능 구현 예정입니다.');
-    } catch (err) {
-      setError('비밀번호 재설정 요청 중 오류가 발생했습니다.');
+      await sendPasswordResetEmail(auth, email);
+      setMessage('비밀번호 재설정 이메일이 발송되었습니다.');
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      
+      let errorMessage = '비밀번호 재설정 요청 중 오류가 발생했습니다.';
+      if (err.code === 'auth/user-not-found') {
+        errorMessage = '존재하지 않는 이메일 주소입니다.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = '올바르지 않은 이메일 형식입니다.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -233,7 +362,7 @@ export default function LoginPage() {
           <div className="text-center">
             <span className="text-sm text-gray-600">
               계정이 없으신가요?{' '}
-              <a href="/auth/signup" className="font-medium text-primary-600 hover:text-primary-500">
+              <a href="/auth/register" className="font-medium text-primary-600 hover:text-primary-500">
                 회원가입
               </a>
             </span>
