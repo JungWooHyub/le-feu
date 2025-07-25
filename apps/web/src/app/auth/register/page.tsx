@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Flame, Mail, Lock, Eye, EyeOff, User, Building, Crown, Smartphone } from 'lucide-react';
 import { PhoneAuth } from '../../../components/auth/PhoneAuth';
+import { ProfileForm } from '../../../components/auth/ProfileForm';
 // Firebase 동적 초기화 (안전)
 async function initializeFirebaseAuth() {
   if (typeof window === 'undefined') return null;
@@ -35,7 +36,7 @@ async function initializeFirebaseAuth() {
   }
 }
 
-type UserRole = 'user' | 'employer' | 'curator';
+type UserRole = 'chef' | 'helper' | 'manager' | 'owner' | 'student';
 
 interface RoleOption {
   id: UserRole;
@@ -47,30 +48,44 @@ interface RoleOption {
 
 const roleOptions: RoleOption[] = [
   {
-    id: 'user',
-    name: '일반 사용자',
-    description: '셰프, 주방보조, 매니저 등',
+    id: 'chef',
+    name: '셰프',
+    description: '주방의 전문 요리사',
+    icon: Crown,
+    color: 'bg-purple-100 text-purple-700 border-purple-200'
+  },
+  {
+    id: 'helper',
+    name: '헬퍼',
+    description: '주방보조, 홀서빙 등',
     icon: User,
     color: 'bg-blue-100 text-blue-700 border-blue-200'
   },
   {
-    id: 'employer',
-    name: '사업주',
-    description: '음식점 운영자, 인사 담당자',
-    icon: Building,
+    id: 'manager',
+    name: '매니저',
+    description: '매장 관리자, 팀장 등',
+    icon: User,
     color: 'bg-green-100 text-green-700 border-green-200'
   },
   {
-    id: 'curator',
-    name: '큐레이터',
-    description: '콘텐츠 작성자, 업계 전문가',
-    icon: Crown,
-    color: 'bg-purple-100 text-purple-700 border-purple-200'
+    id: 'owner',
+    name: '사업주',
+    description: '음식점 운영자, 인사 담당자',
+    icon: Building,
+    color: 'bg-orange-100 text-orange-700 border-orange-200'
+  },
+  {
+    id: 'student',
+    name: '학생/지망생',
+    description: '요리 학도, 업계 진입 준비자',
+    icon: User,
+    color: 'bg-gray-100 text-gray-700 border-gray-200'
   }
 ];
 
 export default function RegisterPage() {
-  const [step, setStep] = useState<'info' | 'role'>('info');
+  const [step, setStep] = useState<'info' | 'role' | 'profile'>('info');
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [formData, setFormData] = useState({
     email: '',
@@ -79,6 +94,7 @@ export default function RegisterPage() {
     displayName: '',
     role: '' as UserRole | ''
   });
+  const [firebaseUser, setFirebaseUser] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -113,67 +129,12 @@ export default function RegisterPage() {
     }
   };
 
-  const handleRoleSelect = async (role: UserRole) => {
+  const handleRoleSelect = (role: UserRole) => {
     setFormData(prev => ({ ...prev, role }));
-    await handleRegister(role);
+    setStep('profile');
   };
 
-  const handleRegister = async (selectedRole: UserRole) => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const auth = await initializeFirebaseAuth();
-      if (!auth) {
-        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-        setLoading(false);
-        return;
-      }
 
-      // Firebase Auth로 사용자 생성
-      const { createUserWithEmailAndPassword } = await import('firebase/auth');
-      const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        formData.email, 
-        formData.password
-      );
-      
-      const user = userCredential.user;
-      
-      // Supabase profiles 테이블에 사용자 정보 저장
-      const response = await fetch('/api/auth/profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await user.getIdToken()}`
-        },
-        body: JSON.stringify({
-          id: user.uid,
-          email: formData.email,
-          display_name: formData.displayName,
-          role: selectedRole,
-          is_verified: false,
-          metadata: {
-            signUpMethod: 'email',
-            createdAt: new Date().toISOString()
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('프로필 생성에 실패했습니다.');
-      }
-
-      setMessage('회원가입이 완료되었습니다!');
-      setTimeout(() => router.push('/'), 1500);
-      
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      setError(error.message || '회원가입 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGoogleSignUp = async () => {
     setLoading(true);
@@ -191,6 +152,9 @@ export default function RegisterPage() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      
+      // Firebase 사용자 저장
+      setFirebaseUser(user);
       
       // Google 로그인 시 바로 역할 선택으로 이동
       setFormData(prev => ({
@@ -225,6 +189,9 @@ export default function RegisterPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
+      // Firebase 사용자 저장
+      setFirebaseUser(user);
+      
       // Apple 로그인 시 바로 역할 선택으로 이동
       setFormData(prev => ({
         ...prev,
@@ -243,6 +210,9 @@ export default function RegisterPage() {
 
   const handlePhoneAuthSuccess = ({ user, needsRoleSelection }: { user: any; needsRoleSelection: boolean }) => {
     if (needsRoleSelection) {
+      // Firebase 사용자 저장
+      setFirebaseUser(user);
+      
       // 새 사용자이므로 역할 선택으로 이동
       setFormData(prev => ({
         ...prev,
@@ -261,6 +231,87 @@ export default function RegisterPage() {
     setError(errorMessage);
   };
 
+  const handleProfileSubmit = async (profileData: any) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      let user = firebaseUser;
+      
+      // 이메일 회원가입인 경우 Firebase 사용자 생성
+      if (!user && authMethod === 'email') {
+        const auth = await initializeFirebaseAuth();
+        if (!auth) {
+          setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
+          return;
+        }
+
+        const { createUserWithEmailAndPassword } = await import('firebase/auth');
+        const userCredential = await createUserWithEmailAndPassword(
+          auth, 
+          formData.email, 
+          formData.password
+        );
+        user = userCredential.user;
+      }
+
+      if (!user) {
+        setError('사용자 인증 정보가 없습니다.');
+        return;
+      }
+
+      // Supabase에 전체 프로필 정보 저장
+      const response = await fetch('/api/auth/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await user.getIdToken()}`
+        },
+        body: JSON.stringify({
+          id: user.uid,
+          email: formData.email || user.email,
+          name: formData.displayName,
+          nickname: profileData.nickname,
+          bio: profileData.bio,
+          role: formData.role,
+          business_type: profileData.businessType,
+          specialties: profileData.specialties,
+          location: profileData.location,
+          experience_years: profileData.experienceYears,
+          is_verified: false,
+          metadata: {
+            signUpMethod: authMethod,
+            createdAt: new Date().toISOString()
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('프로필 생성에 실패했습니다.');
+      }
+
+      setMessage('회원가입이 완료되었습니다!');
+      setTimeout(() => router.push('/'), 1500);
+      
+    } catch (error: any) {
+      console.error('Profile creation error:', error);
+      setError(error.message || '프로필 생성 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProfileSkip = () => {
+    // 기본 프로필로 바로 가입 완료
+    handleProfileSubmit({
+      nickname: formData.displayName,
+      bio: '',
+      specialties: [],
+      location: { city: '', district: '' },
+      experienceYears: 0
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
@@ -271,12 +322,14 @@ export default function RegisterPage() {
             <span className="text-3xl font-bold text-gray-900">le feu</span>
           </div>
           <h2 className="text-2xl font-bold text-gray-900">
-            {step === 'info' ? '회원가입' : '역할 선택'}
+            {step === 'info' && '회원가입'}
+            {step === 'role' && '역할 선택'}
+            {step === 'profile' && '프로필 설정'}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {step === 'info' 
-              ? 'le feu에서 새로운 여정을 시작하세요' 
-              : '어떤 역할로 활동하시겠나요?'}
+            {step === 'info' && 'le feu에서 새로운 여정을 시작하세요'}
+            {step === 'role' && '어떤 역할로 활동하시겠나요?'}
+            {step === 'profile' && '마지막 단계입니다. 프로필을 완성해주세요.'}
           </p>
         </div>
 
@@ -486,7 +539,7 @@ export default function RegisterPage() {
               </div>
             )}
           </div>
-        ) : (
+        ) : step === 'role' ? (
           /* 역할 선택 단계 */
           <div className="space-y-4">
             <div className="mb-6">
@@ -527,10 +580,29 @@ export default function RegisterPage() {
               </div>
             )}
           </div>
+        ) : (
+          /* 프로필 입력 단계 */
+          <div className="space-y-4">
+            <div className="mb-6">
+              <button
+                onClick={() => setStep('role')}
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
+              >
+                ← 이전 단계로
+              </button>
+            </div>
+
+            <ProfileForm
+              role={formData.role as any}
+              onSubmit={handleProfileSubmit}
+              onSkip={handleProfileSkip}
+              loading={loading}
+            />
+          </div>
         )}
 
         {/* 로그인 링크 */}
-        {step === 'info' && (
+        {step !== 'profile' && (
           <div className="text-center">
             <span className="text-sm text-gray-600">
               이미 계정이 있으신가요?{' '}
