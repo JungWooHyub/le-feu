@@ -1,51 +1,36 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Phone, ArrowRight, RotateCcw } from 'lucide-react';
-
-// Firebase 초기화 함수
-async function initializeFirebaseAuth() {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const { initializeApp, getApps } = await import('firebase/app');
-    const { getAuth } = await import('firebase/auth');
-    
-    const firebaseConfig = {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ''
-    };
-    
-    if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
-      console.warn('Firebase 환경변수가 설정되지 않았습니다.');
-      return null;
-    }
-    
-    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-    return getAuth(app);
-  } catch (error) {
-    console.error('Firebase 초기화 실패:', error);
-    return null;
-  }
-}
+import { useState, useRef, useEffect } from 'react';
+import { User } from 'firebase/auth';
+import { Phone, ArrowLeft } from 'lucide-react';
+import { getFirebaseAuth } from '../../../lib/firebase';
 
 interface PhoneAuthProps {
-  onSuccess: (user: any) => void;
-  onError: (error: string) => void;
   mode: 'login' | 'register';
+  onSuccess: (result: { user: User; needsRoleSelection: boolean }) => void;
+  onError: (error: string) => void;
 }
 
-export const PhoneAuth = ({ onSuccess, onError, mode }: PhoneAuthProps) => {
+// 전화번호 포맷팅 함수
+const formatPhoneNumber = (value: string) => {
+  const phoneNumber = value.replace(/[^\d]/g, '');
+  if (phoneNumber.length <= 3) {
+    return phoneNumber;
+  } else if (phoneNumber.length <= 7) {
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+  } else {
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`;
+  }
+};
+
+export const PhoneAuth = ({ mode, onSuccess, onError }: PhoneAuthProps) => {
   const [step, setStep] = useState<'phone' | 'verification'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendDisabled, setResendDisabled] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+
   const recaptchaRef = useRef<HTMLDivElement>(null);
   const confirmationResultRef = useRef<any>(null);
 
@@ -54,77 +39,28 @@ export const PhoneAuth = ({ onSuccess, onError, mode }: PhoneAuthProps) => {
     let interval: NodeJS.Timeout;
     if (resendTimer > 0) {
       interval = setInterval(() => {
-        setResendTimer(prev => prev - 1);
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            setResendDisabled(false);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
-    } else {
-      setResendDisabled(false);
     }
     return () => clearInterval(interval);
   }, [resendTimer]);
 
-  // reCAPTCHA 초기화
-  useEffect(() => {
-    const initializeRecaptcha = async () => {
-      try {
-        const auth = await initializeFirebaseAuth();
-        if (!auth) return;
-
-        const { RecaptchaVerifier } = await import('firebase/auth');
-        
-        if (recaptchaRef.current) {
-          // 기존 reCAPTCHA 제거
-          recaptchaRef.current.innerHTML = '';
-          
-          new RecaptchaVerifier(auth, recaptchaRef.current, {
-            'size': 'normal',
-            'callback': () => {
-              console.log('reCAPTCHA 완료');
-            },
-            'expired-callback': () => {
-              console.log('reCAPTCHA 만료됨');
-            }
-          });
-        }
-      } catch (error) {
-        console.error('reCAPTCHA 초기화 실패:', error);
-      }
-    };
-
-    if (step === 'phone') {
-      initializeRecaptcha();
-    }
-  }, [step]);
-
-  const formatPhoneNumber = (value: string): string => {
-    // 숫자만 추출
-    const digits = value.replace(/\D/g, '');
-    
-    // 한국 번호 형식으로 변환 (010-1234-5678)
-    if (digits.length <= 3) {
-      return digits;
-    } else if (digits.length <= 7) {
-      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    } else {
-      return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
-    }
-  };
-
-  const validatePhoneNumber = (phone: string): boolean => {
-    // 한국 휴대폰 번호 형식 확인 (010으로 시작하는 11자리)
-    const digits = phone.replace(/\D/g, '');
-    return /^010\d{8}$/.test(digits);
-  };
-
   const sendVerificationCode = async () => {
-    if (!validatePhoneNumber(phoneNumber)) {
-      onError('올바른 휴대폰 번호를 입력해주세요.');
+    if (phoneNumber.replace(/\D/g, '').length !== 11) {
+      onError('올바른 전화번호를 입력해주세요.');
       return;
     }
 
     setLoading(true);
     try {
-      const auth = await initializeFirebaseAuth();
-      if (!auth) {
+      const { auth, isConfigured } = getFirebaseAuth();
+      if (!auth || !isConfigured) {
         onError('Firebase가 초기화되지 않았습니다.');
         return;
       }
@@ -134,9 +70,15 @@ export const PhoneAuth = ({ onSuccess, onError, mode }: PhoneAuthProps) => {
       // 국제 형식으로 변환 (+82 10-xxxx-xxxx)
       const formattedNumber = `+82${phoneNumber.replace(/\D/g, '').slice(1)}`;
       
-      // reCAPTCHA 검증자 가져오기
+      // reCAPTCHA 검증자 생성
       const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaRef.current!, {
-        'size': 'normal'
+        'size': 'normal',
+        'callback': () => {
+          // reCAPTCHA 성공
+        },
+        'expired-callback': () => {
+          onError('reCAPTCHA가 만료되었습니다. 다시 시도해주세요.');
+        }
       });
 
       const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, recaptchaVerifier);
@@ -154,6 +96,8 @@ export const PhoneAuth = ({ onSuccess, onError, mode }: PhoneAuthProps) => {
         errorMessage = '너무 많은 요청이 있었습니다. 잠시 후 다시 시도해주세요.';
       } else if (error.code === 'auth/invalid-phone-number') {
         errorMessage = '올바르지 않은 전화번호입니다.';
+      } else if (error.code === 'auth/quota-exceeded') {
+        errorMessage = '일일 SMS 할당량을 초과했습니다. 내일 다시 시도해주세요.';
       }
       
       onError(errorMessage);
@@ -204,6 +148,8 @@ export const PhoneAuth = ({ onSuccess, onError, mode }: PhoneAuthProps) => {
         errorMessage = '인증번호가 올바르지 않습니다.';
       } else if (error.code === 'auth/code-expired') {
         errorMessage = '인증번호가 만료되었습니다. 다시 요청해주세요.';
+      } else if (error.code === 'auth/session-expired') {
+        errorMessage = '세션이 만료되었습니다. 처음부터 다시 시도해주세요.';
       }
       
       onError(errorMessage);
@@ -225,109 +171,133 @@ export const PhoneAuth = ({ onSuccess, onError, mode }: PhoneAuthProps) => {
     }
   };
 
-  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // 숫자만 허용
+  const handleVerificationCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^\d]/g, '');
     if (value.length <= 6) {
       setVerificationCode(value);
     }
   };
 
-  if (step === 'phone') {
-    return (
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="phone" className="sr-only">
-            전화번호
-          </label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-              required
-              className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              placeholder="010-1234-5678"
-              value={phoneNumber}
-              onChange={handlePhoneChange}
-            />
-          </div>
-          <p className="mt-1 text-xs text-gray-500">
-            인증번호를 받을 휴대폰 번호를 입력해주세요.
-          </p>
-        </div>
-
-        {/* reCAPTCHA */}
-        <div className="flex justify-center">
-          <div ref={recaptchaRef}></div>
-        </div>
-
-        <button
-          type="button"
-          onClick={sendVerificationCode}
-          disabled={loading || !validatePhoneNumber(phoneNumber)}
-          className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? '전송 중...' : '인증번호 전송'}
-          {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <div>
-        <label htmlFor="verification-code" className="sr-only">
-          인증번호
-        </label>
-        <input
-          id="verification-code"
-          name="verification-code"
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          required
-          className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-center text-lg tracking-widest"
-          placeholder="123456"
-          value={verificationCode}
-          onChange={handleCodeChange}
-          maxLength={6}
-        />
-        <p className="mt-1 text-xs text-gray-500 text-center">
-          {phoneNumber}로 전송된 6자리 인증번호를 입력해주세요.
-        </p>
-      </div>
+    <div className="space-y-6">
+      {step === 'phone' ? (
+        <>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                전화번호
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  id="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  placeholder="010-1234-5678"
+                  value={phoneNumber}
+                  onChange={handlePhoneChange}
+                  disabled={loading}
+                />
+              </div>
+              <p className="mt-2 text-sm text-gray-500">
+                SMS 인증번호가 발송됩니다.
+              </p>
+            </div>
 
-      <button
-        type="button"
-        onClick={verifyCode}
-        disabled={loading || verificationCode.length !== 6}
-        className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? '확인 중...' : '인증번호 확인'}
-      </button>
+            {/* reCAPTCHA 컨테이너 */}
+            <div ref={recaptchaRef} className="flex justify-center"></div>
+          </div>
 
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={resendDisabled}
-          className="text-sm text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-        >
-          <RotateCcw className="mr-1 h-4 w-4" />
-          {resendDisabled ? `다시 전송 (${resendTimer}초)` : '다시 전송'}
-        </button>
-        
-        <button
-          type="button"
-          onClick={() => setStep('phone')}
-          className="text-sm text-gray-600 hover:text-gray-500"
-        >
-          번호 변경
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={sendVerificationCode}
+            disabled={loading || phoneNumber.replace(/\D/g, '').length !== 11}
+            className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                인증번호 발송 중...
+              </div>
+            ) : (
+              '인증번호 발송'
+            )}
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                인증번호 확인
+              </h3>
+              <p className="text-sm text-gray-600">
+                {phoneNumber}로 발송된 6자리 인증번호를 입력해주세요.
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="verification" className="block text-sm font-medium text-gray-700 mb-2">
+                인증번호
+              </label>
+              <input
+                id="verification"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-center text-lg tracking-widest"
+                placeholder="123456"
+                value={verificationCode}
+                onChange={handleVerificationCodeChange}
+                disabled={loading}
+                maxLength={6}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={verifyCode}
+              disabled={loading || verificationCode.length !== 6}
+              className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  인증 중...
+                </div>
+              ) : (
+                '인증하기'
+              )}
+            </button>
+
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendDisabled}
+                className="text-sm text-primary-600 hover:text-primary-500 disabled:text-gray-400 disabled:cursor-not-allowed"
+              >
+                {resendDisabled ? `다시 요청 (${resendTimer}초)` : '다시 요청'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStep('phone')}
+                className="text-sm text-gray-600 hover:text-gray-500 flex items-center"
+                disabled={loading}
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                번호 변경
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }; 
