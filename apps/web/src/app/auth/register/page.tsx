@@ -2,85 +2,64 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Flame, Mail, Lock, Eye, EyeOff, User, Building, Crown, Smartphone } from 'lucide-react';
+import { 
+  Flame, Mail, Lock, Eye, EyeOff, User, Building, Crown, 
+  Smartphone, ChefHat, Users, GraduationCap, Phone 
+} from 'lucide-react';
 import { PhoneAuth } from '../../../components/auth/PhoneAuth';
 import { ProfileForm } from '../../../components/auth/ProfileForm';
-// Firebase 동적 초기화 (안전)
-async function initializeFirebaseAuth() {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const { initializeApp, getApps } = await import('firebase/app');
-    const { getAuth } = await import('firebase/auth');
-    
-    const firebaseConfig = {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ''
-    };
-    
-    // 환경변수가 제대로 설정되어 있는지 확인
-    if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
-      console.warn('Firebase 환경변수가 설정되지 않았습니다.');
-      return null;
-    }
-    
-    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-    return getAuth(app);
-  } catch (error) {
-    console.error('Firebase 초기화 실패:', error);
-    return null;
-  }
-}
+import { getFirebaseAuth } from '../../../../lib/firebase';
 
 type UserRole = 'chef' | 'helper' | 'manager' | 'owner' | 'student';
 
-interface RoleOption {
+// 역할 옵션 정의
+const roleOptions: Array<{
   id: UserRole;
   name: string;
   description: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<any>;
   color: string;
-}
-
-const roleOptions: RoleOption[] = [
+  benefits: string[];
+}> = [
   {
     id: 'chef',
     name: '셰프',
-    description: '주방의 전문 요리사',
-    icon: Crown,
-    color: 'bg-purple-100 text-purple-700 border-purple-200'
+    description: '요리 전문가로 활동하고 포트폴리오를 공유하세요',
+    icon: ChefHat,
+    color: 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100',
+    benefits: ['레시피 공유', '셰프 스토리 발견', '전문가 네트워킹']
   },
   {
     id: 'helper',
-    name: '헬퍼',
-    description: '주방보조, 홀서빙 등',
-    icon: User,
-    color: 'bg-blue-100 text-blue-700 border-blue-200'
+    name: '헬퍼/어시스턴트',
+    description: '주방 보조 및 서빙 업무를 담당하시는 분',
+    icon: Users,
+    color: 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100',
+    benefits: ['엑스트라 공고 우선 추천', '실무 팁 공유', '빠른 매칭']
   },
   {
     id: 'manager',
     name: '매니저',
-    description: '매장 관리자, 팀장 등',
-    icon: User,
-    color: 'bg-green-100 text-green-700 border-green-200'
+    description: '매장 운영 및 관리를 담당하시는 분',
+    icon: Building,
+    color: 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100',
+    benefits: ['매장 운영 노하우', '관리 도구 추천', '네트워킹']
   },
   {
     id: 'owner',
-    name: '사업주',
-    description: '음식점 운영자, 인사 담당자',
-    icon: Building,
-    color: 'bg-orange-100 text-orange-700 border-orange-200'
+    name: '사업주/점주',
+    description: '레스토랑, 카페 등을 운영하시는 분',
+    icon: Crown,
+    color: 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100',
+    benefits: ['인재 채용', '경영 인사이트', '업계 트렌드']
   },
   {
     id: 'student',
     name: '학생/지망생',
-    description: '요리 학도, 업계 진입 준비자',
-    icon: User,
-    color: 'bg-gray-100 text-gray-700 border-gray-200'
+    description: '요리를 배우고 있거나 업계 진입을 준비하는 분',
+    icon: GraduationCap,
+    color: 'border-pink-200 bg-pink-50 text-pink-700 hover:bg-pink-100',
+    benefits: ['학습 자료', '멘토링', '취업 정보']
   }
 ];
 
@@ -102,9 +81,21 @@ export default function RegisterPage() {
   const [message, setMessage] = useState('');
   const router = useRouter();
 
+  // 진행률 계산
+  const getProgress = () => {
+    const steps = ['info', 'role', 'profile'];
+    const currentIndex = steps.indexOf(step);
+    return ((currentIndex + 1) / steps.length) * 100;
+  };
+
   const validateForm = () => {
     if (!formData.email || !formData.password || !formData.displayName) {
       setError('모든 필드를 입력해주세요.');
+      return false;
+    }
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError('올바른 이메일 형식을 입력해주세요.');
       return false;
     }
     
@@ -134,96 +125,13 @@ export default function RegisterPage() {
     setStep('profile');
   };
 
-
-
-  const handleGoogleSignUp = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const auth = await initializeFirebaseAuth();
-      if (!auth) {
-        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-        setLoading(false);
-        return;
-      }
-
-      const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      // Firebase 사용자 저장
-      setFirebaseUser(user);
-      
-      // Google 로그인 시 바로 역할 선택으로 이동
-      setFormData(prev => ({
-        ...prev,
-        email: user.email || '',
-        displayName: user.displayName || ''
-      }));
-      setStep('role');
-      
-    } catch (error: any) {
-      console.error('Google signup error:', error);
-      setError('Google 회원가입 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAppleSignUp = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const auth = await initializeFirebaseAuth();
-      if (!auth) {
-        setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-        setLoading(false);
-        return;
-      }
-
-      const { signInWithPopup, OAuthProvider } = await import('firebase/auth');
-      const provider = new OAuthProvider('apple.com');
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      // Firebase 사용자 저장
-      setFirebaseUser(user);
-      
-      // Apple 로그인 시 바로 역할 선택으로 이동
-      setFormData(prev => ({
-        ...prev,
-        email: user.email || '',
-        displayName: user.displayName || user.email?.split('@')[0] || ''
-      }));
-      setStep('role');
-      
-    } catch (error: any) {
-      console.error('Apple signup error:', error);
-      setError('Apple 회원가입 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePhoneAuthSuccess = ({ user, needsRoleSelection }: { user: any; needsRoleSelection: boolean }) => {
+  const handlePhoneAuthSuccess = ({ user, needsRoleSelection }: any) => {
+    setFirebaseUser(user);
     if (needsRoleSelection) {
-      // Firebase 사용자 저장
-      setFirebaseUser(user);
-      
-      // 새 사용자이므로 역할 선택으로 이동
-      setFormData(prev => ({
-        ...prev,
-        email: user.email || '',
-        displayName: user.displayName || user.phoneNumber || ''
-      }));
       setStep('role');
     } else {
-      // 기존 사용자는 홈으로 이동
-      setMessage('로그인 성공!');
-      setTimeout(() => router.push('/'), 1000);
+      // 기존 사용자라면 로그인 처리
+      router.push('/');
     }
   };
 
@@ -240,8 +148,8 @@ export default function RegisterPage() {
       
       // 이메일 회원가입인 경우 Firebase 사용자 생성
       if (!user && authMethod === 'email') {
-        const auth = await initializeFirebaseAuth();
-        if (!auth) {
+        const { auth, isConfigured } = getFirebaseAuth();
+        if (!auth || !isConfigured) {
           setError('Firebase가 설정되지 않았습니다. 환경변수를 확인해주세요.');
           return;
         }
@@ -287,7 +195,8 @@ export default function RegisterPage() {
       });
 
       if (!response.ok) {
-        throw new Error('프로필 생성에 실패했습니다.');
+        const errorData = await response.json();
+        throw new Error(errorData.error || '프로필 생성에 실패했습니다.');
       }
 
       setMessage('회원가입이 완료되었습니다!');
@@ -312,6 +221,35 @@ export default function RegisterPage() {
     });
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // 입력 시 에러 메시지 제거
+    if (error) setError('');
+  };
+
+  const getStepTitle = () => {
+    switch (step) {
+      case 'info': return '회원가입';
+      case 'role': return '역할 선택';
+      case 'profile': return '프로필 설정';
+      default: return '회원가입';
+    }
+  };
+
+  const getStepDescription = () => {
+    switch (step) {
+      case 'info': return 'le feu에서 새로운 여정을 시작하세요';
+      case 'role': return '어떤 역할로 활동하시겠나요?';
+      case 'profile': return '마지막 단계입니다. 프로필을 완성해주세요.';
+      default: return '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
@@ -321,236 +259,224 @@ export default function RegisterPage() {
             <Flame className="h-10 w-10 text-primary-500" />
             <span className="text-3xl font-bold text-gray-900">le feu</span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {step === 'info' && '회원가입'}
-            {step === 'role' && '역할 선택'}
-            {step === 'profile' && '프로필 설정'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {step === 'info' && 'le feu에서 새로운 여정을 시작하세요'}
-            {step === 'role' && '어떤 역할로 활동하시겠나요?'}
-            {step === 'profile' && '마지막 단계입니다. 프로필을 완성해주세요.'}
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900">{getStepTitle()}</h2>
+          <p className="mt-2 text-sm text-gray-600">{getStepDescription()}</p>
         </div>
 
-        {/* 인증 방법 선택 탭 (정보 입력 단계에서만 표시) */}
-        {step === 'info' && (
-          <div className="flex rounded-lg bg-gray-100 p-1">
-            <button
-              type="button"
-              onClick={() => setAuthMethod('email')}
-              className={`flex-1 flex items-center justify-center py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                authMethod === 'email'
-                  ? 'bg-white text-primary-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              이메일
-            </button>
-            <button
-              type="button"
-              onClick={() => setAuthMethod('phone')}
-              className={`flex-1 flex items-center justify-center py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                authMethod === 'phone'
-                  ? 'bg-white text-primary-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Smartphone className="h-4 w-4 mr-2" />
-              전화번호
-            </button>
-          </div>
-        )}
+        {/* 진행률 표시기 */}
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${getProgress()}%` }}
+          ></div>
+        </div>
 
         {/* 알림 메시지 */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-            {error}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            </div>
           </div>
         )}
-        
+
         {message && (
-          <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
-            {message}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-green-800">{message}</p>
+              </div>
+            </div>
           </div>
         )}
 
+        {/* 단계별 콘텐츠 */}
         {step === 'info' ? (
-          /* 기본 정보 입력 단계 */
-          <div>
+          <>
+            {/* 인증 방법 선택 */}
+            <div className="flex rounded-lg bg-gray-100 p-1">
+              <button
+                type="button"
+                onClick={() => setAuthMethod('email')}
+                className={`flex-1 flex items-center justify-center py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  authMethod === 'email'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                이메일
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthMethod('phone')}
+                className={`flex-1 flex items-center justify-center py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                  authMethod === 'phone'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Phone className="h-4 w-4 mr-2" />
+                전화번호
+              </button>
+            </div>
+
+            {/* 인증 폼 */}
             {authMethod === 'email' ? (
-              <div>
-                {/* 소셜 로그인 버튼 */}
-                <div className="space-y-3 mb-6">
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignUp}
-                    disabled={loading}
-                    className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    Google로 회원가입
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleAppleSignUp}
-                    disabled={loading}
-                    className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                    </svg>
-                    Apple로 회원가입
-                  </button>
-                </div>
-
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-gradient-to-br from-primary-50 to-secondary-50 text-gray-500">또는 이메일로 가입</span>
+              <form onSubmit={handleInfoSubmit} className="space-y-4">
+                {/* 이메일 */}
+                <div>
+                  <label htmlFor="email" className="sr-only">이메일</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      placeholder="이메일 주소"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                    />
                   </div>
                 </div>
 
-                {/* 이메일 회원가입 폼 */}
-                <form onSubmit={handleInfoSubmit} className="space-y-4">
-                  {/* 이름 입력 */}
-                  <div>
-                    <label htmlFor="displayName" className="sr-only">이름</label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        id="displayName"
-                        name="displayName"
-                        type="text"
-                        required
-                        className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                        placeholder="이름"
-                        value={formData.displayName}
-                        onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                      />
-                    </div>
+                {/* 이름 */}
+                <div>
+                  <label htmlFor="displayName" className="sr-only">이름</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      id="displayName"
+                      name="displayName"
+                      type="text"
+                      autoComplete="name"
+                      required
+                      className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      placeholder="이름"
+                      value={formData.displayName}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                    />
                   </div>
+                </div>
 
-                  {/* 이메일 입력 */}
-                  <div>
-                    <label htmlFor="email" className="sr-only">이메일</label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autoComplete="email"
-                        required
-                        className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                        placeholder="이메일 주소"
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      />
-                    </div>
+                {/* 비밀번호 */}
+                <div>
+                  <label htmlFor="password" className="sr-only">비밀번호</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      required
+                      className="appearance-none relative block w-full pl-10 pr-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      placeholder="비밀번호 (6자 이상)"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={loading}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
                   </div>
+                </div>
 
-                  {/* 비밀번호 입력 */}
-                  <div>
-                    <label htmlFor="password" className="sr-only">비밀번호</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        id="password"
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        autoComplete="new-password"
-                        required
-                        className="appearance-none relative block w-full pl-10 pr-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                        placeholder="비밀번호 (6자 이상)"
-                        value={formData.password}
-                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-5 w-5 text-gray-400" />
-                        ) : (
-                          <Eye className="h-5 w-5 text-gray-400" />
-                        )}
-                      </button>
-                    </div>
+                {/* 비밀번호 확인 */}
+                <div>
+                  <label htmlFor="confirmPassword" className="sr-only">비밀번호 확인</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      required
+                      className="appearance-none relative block w-full pl-10 pr-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      placeholder="비밀번호 확인"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      disabled={loading}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
                   </div>
+                </div>
 
-                  {/* 비밀번호 확인 */}
-                  <div>
-                    <label htmlFor="confirmPassword" className="sr-only">비밀번호 확인</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        autoComplete="new-password"
-                        required
-                        className="appearance-none relative block w-full pl-10 pr-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                        placeholder="비밀번호 확인"
-                        value={formData.confirmPassword}
-                        onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-5 w-5 text-gray-400" />
-                        ) : (
-                          <Eye className="h-5 w-5 text-gray-400" />
-                        )}
-                      </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      처리 중...
                     </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? '처리 중...' : '다음 단계'}
-                  </button>
-                </form>
-              </div>
+                  ) : (
+                    '다음 단계'
+                  )}
+                </button>
+              </form>
             ) : (
-              /* 전화번호 인증 */
-              <div className="mt-8">
-                <PhoneAuth
-                  mode="register"
-                  onSuccess={handlePhoneAuthSuccess}
-                  onError={handlePhoneAuthError}
-                />
-              </div>
+              <PhoneAuth 
+                mode="register"
+                onSuccess={handlePhoneAuthSuccess}
+                onError={handlePhoneAuthError}
+              />
             )}
-          </div>
+          </>
         ) : step === 'role' ? (
-          /* 역할 선택 단계 */
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* 뒤로가기 버튼 */}
             <div className="mb-6">
               <button
                 onClick={() => setStep('info')}
-                className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center transition-colors"
+                disabled={loading}
               >
                 ← 이전 단계로
               </button>
             </div>
 
+            {/* 역할 선택 카드들 */}
             <div className="space-y-3">
               {roleOptions.map((role) => {
                 const IconComponent = role.icon;
@@ -559,13 +485,25 @@ export default function RegisterPage() {
                     key={role.id}
                     onClick={() => handleRoleSelect(role.id)}
                     disabled={loading}
-                    className={`w-full p-4 border-2 rounded-lg text-left transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed ${role.color} hover:shadow-md`}
+                    className={`w-full p-6 border-2 rounded-xl text-left transition-all hover:scale-[1.02] hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${role.color}`}
                   >
-                    <div className="flex items-start space-x-3">
-                      <IconComponent className="h-6 w-6 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <h3 className="font-semibold">{role.name}</h3>
-                        <p className="text-sm opacity-75">{role.description}</p>
+                    <div className="flex items-start space-x-4">
+                      <div className="flex-shrink-0">
+                        <IconComponent className="h-8 w-8" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-1">{role.name}</h3>
+                        <p className="text-sm opacity-90 mb-3">{role.description}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {role.benefits.map((benefit, index) => (
+                            <span 
+                              key={index}
+                              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white bg-opacity-60"
+                            >
+                              {benefit}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </button>
@@ -586,7 +524,8 @@ export default function RegisterPage() {
             <div className="mb-6">
               <button
                 onClick={() => setStep('role')}
-                className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center transition-colors"
+                disabled={loading}
               >
                 ← 이전 단계로
               </button>
@@ -606,7 +545,7 @@ export default function RegisterPage() {
           <div className="text-center">
             <span className="text-sm text-gray-600">
               이미 계정이 있으신가요?{' '}
-              <a href="/auth/login" className="font-medium text-primary-600 hover:text-primary-500">
+              <a href="/auth/login" className="font-medium text-primary-600 hover:text-primary-500 transition-colors">
                 로그인
               </a>
             </span>
