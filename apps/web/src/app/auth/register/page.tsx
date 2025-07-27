@@ -204,7 +204,36 @@ export default function RegisterPage() {
       
     } catch (error: any) {
       console.error('Profile creation error:', error);
-      setError(error.message || '프로필 생성 중 오류가 발생했습니다.');
+      
+      // Firebase 오류 코드에 따른 사용자 친화적 메시지
+      let errorMessage = '프로필 생성 중 오류가 발생했습니다.';
+      
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = '이미 사용 중인 이메일입니다. 로그인을 시도해보세요.';
+            // 3초 후 로그인 페이지로 이동
+            setTimeout(() => {
+              router.push('/auth/login?email=' + encodeURIComponent(formData.email));
+            }, 3000);
+            break;
+          case 'auth/weak-password':
+            errorMessage = '비밀번호가 너무 약합니다. 6자 이상 입력해주세요.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = '올바르지 않은 이메일 형식입니다.';
+            break;
+          case 'auth/network-request-failed':
+            errorMessage = '네트워크 연결을 확인해주세요.';
+            break;
+          default:
+            errorMessage = error.message || errorMessage;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

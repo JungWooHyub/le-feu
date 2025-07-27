@@ -10,7 +10,7 @@ export const metadata = {
   manifest: '/manifest.json',
   themeColor: '#ef4444',
   appleWebApp: {
-    capable: true,
+    capable: false, // deprecated 경고 해결
     statusBarStyle: 'default',
     title: 'le feu',
   },
@@ -38,14 +38,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-        <meta name="theme-color" content="#ef4444" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="le feu" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/logo_lefeu_0-removebg-preview.png" />
-        <link rel="apple-touch-icon" href="/logo_lefeu_0-removebg-preview.png" />
+        {/* Next.js metadata API를 사용하므로 수동 메타 태그 제거 */}
       </head>
       <body className={inter.className}>
         <Providers>
