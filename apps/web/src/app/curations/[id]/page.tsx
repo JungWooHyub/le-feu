@@ -98,8 +98,7 @@ const chefStories = {
     viewCount: 25400,
     likeCount: 1250,
     bookmarkCount: 450,
-    publishedAt: "2024-01-15",
-    readingTime: 12
+    publishedAt: "2024-01-15"
   },
 
   2: {
@@ -193,8 +192,7 @@ const chefStories = {
     viewCount: 18600,
     likeCount: 890,
     bookmarkCount: 320,
-    publishedAt: "2024-01-12",
-    readingTime: 15
+    publishedAt: "2024-01-12"
   },
 
   3: {
@@ -288,8 +286,7 @@ const chefStories = {
     viewCount: 14200,
     likeCount: 720,
     bookmarkCount: 280,
-    publishedAt: "2024-01-10",
-    readingTime: 10
+    publishedAt: "2024-01-10"
   }
 };
 

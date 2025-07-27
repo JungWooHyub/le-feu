@@ -34,8 +34,8 @@ function validateEnvironmentVariables() {
   console.log('✅ 환경변수 검증 완료');
 }
 
-// 빌드 시 환경변수 검증 실행
-if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+// 빌드 시 환경변수 검증 실행 (CI 환경 제외)
+if ((process.env.NODE_ENV === 'production' || process.env.VERCEL) && !process.env.CI && !process.env.GITHUB_ACTIONS) {
   validateEnvironmentVariables();
 }
 
