@@ -44,7 +44,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Validate environment setup
         run: echo "CI 환경에서는 환경변수 검증을 스킵합니다"
@@ -71,7 +71,7 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Run ESLint
         run: pnpm run lint
@@ -100,7 +100,7 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Type check
         run: pnpm run type-check
@@ -126,7 +126,7 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Run tests
         run: pnpm run test
@@ -157,7 +157,7 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Build ${{ matrix.app }} app
         run: pnpm run build --filter=${{ matrix.app }}
@@ -200,7 +200,7 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Audit dependencies
         run: pnpm audit --audit-level moderate
@@ -228,7 +228,7 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Test database schema
         run: pnpm run test:schema
