@@ -1,7 +1,7 @@
 # Monorepo 초기화
 
 **Task ID:** T-001
-**Status:** BACKLOG
+**Status:** DONE
 **Importance:** MUST
 **Complexity:** 6/10
 **Urgency:** 10/10
@@ -25,4 +25,4 @@ Turborepo와 pnpm을 사용하여 프로젝트 루트에 apps/web, apps/admin, p
 ---
 
 **Created:** 2025-07-23T06:15:34.997Z
-**Updated:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-25T02:36:56.627Z

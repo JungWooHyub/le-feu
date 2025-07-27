@@ -1,7 +1,7 @@
 # RBAC 권한 설계 및 보안 룰 적용
 
 **Task ID:** T-009
-**Status:** BACKLOG
+**Status:** DONE
 **Importance:** MUST
 **Complexity:** 7/10
 **Urgency:** 8/10
@@ -26,4 +26,4 @@ Supabase RLS 정책과 역할 기반 접근제어(RBAC)를 설계·적용하여 
 ---
 
 **Created:** 2025-07-23T06:15:34.997Z
-**Updated:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-25T02:37:01.810Z

@@ -1,0 +1,31 @@
+# 커뮤니티 권한 및 보안검증
+
+**Task ID:** T-020
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 7/10
+**Urgency:** 10/10
+**Dependencies:** T-011, T-012, T-013, T-014, T-015, T-016, T-017, T-018, T-019
+
+## Description
+
+### 설명
+글·댓글 작성, 수정, 삭제 권한 체크 및 XSS/CSRF/입력값 검증 등 보안 강화
+
+### 구현 세부 사항
+1. Next.js API Route에 CSRF 토큰 검증 미들웨어 추가
+2. 입력값 서버측 벨리데이션(Joi 또는 Zod) 적용으로 XSS 방지
+3. 게시글/댓글 수정·삭제 시 작성자만 가능하도록 Supabase RLS(행 수준 보안) 설정
+4. 비회원 접근 제한을 위한 클라이언트와 서버측 가드 구현
+5. Helmet 또는 next-secure-headers로 보안 헤더 설정(Content-Security-Policy 등)
+6. 자동화된 보안 스캔(OWASP ZAP 또는 Snyk) 포함된 CI 파이프라인 구성
+
+### 테스트 전략
+- CSRF 공격 시뮬레이션 테스트로 토큰 검증 확인
+- 악의적 스크립트 입력 시 XSS 필터링 검증
+- 작성자 권한 없는 요청 차단 시나리오 테스트
+
+---
+
+**Created:** 2025-07-25T02:46:34.973Z
+**Updated:** 2025-07-25T02:46:34.973Z

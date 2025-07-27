@@ -1,0 +1,31 @@
+# 프로필 상세/수정 페이지
+
+**Task ID:** T-013
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 5/10
+**Urgency:** 8/10
+**Dependencies:** T-012
+
+## Description
+
+### 설명
+회원이 자신의 프로필을 조회·수정할 수 있는 페이지 구현(프로필 이미지 포함)
+
+### 구현 세부 사항
+1. 'pages/profile/[userId].tsx'에서 프로필 조회 API 연동 및 데이터 렌더링
+2. Cloudinary 업로드 위젯 또는 Direct Upload 컴포넌트 연동으로 프로필 이미지 변경 기능 구현
+3. 이름, 소개, 경력 등 입력 필드를 Formik 또는 React Hook Form으로 구성
+4. 변경사항 저장 시 Supabase 'profiles' 테이블 업데이트 API 호출 구현
+5. 저장 전 필드 유효성 검사 및 프리뷰 기능 추가
+6. 저장 완료 후 성공 토스트 및 최신 데이터 리패치
+
+### 테스트 전략
+- 프로필 조회 API 모킹으로 데이터 렌더링 확인
+- 이미지 업로드 모킹 후 URL 반환 및 프리뷰 검증
+- 유효성 검사 실패/성공 시 시나리오별 UI 확인
+
+---
+
+**Created:** 2025-07-25T02:46:34.973Z
+**Updated:** 2025-07-25T02:46:34.973Z

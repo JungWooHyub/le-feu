@@ -1,7 +1,7 @@
 # API 디렉토리 구성 + 예시 API 작성
 
 **Task ID:** T-007
-**Status:** BACKLOG
+**Status:** DONE
 **Importance:** SHOULD
 **Complexity:** 4/10
 **Urgency:** 8/10
@@ -26,4 +26,4 @@ apps/web/src/app/api 디렉토리 구조를 설정하고 /api/ping, /api/user �
 ---
 
 **Created:** 2025-07-23T06:15:34.997Z
-**Updated:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-25T02:37:03.433Z

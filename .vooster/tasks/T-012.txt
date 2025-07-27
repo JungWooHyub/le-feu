@@ -1,0 +1,31 @@
+# 역할 선택 및 프로필 입력 플로우
+
+**Task ID:** T-012
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 5/10
+**Urgency:** 9/10
+**Dependencies:** T-011
+
+## Description
+
+### 설명
+첫 회원가입 시 또는 최초 로그인 후 역할(셰프/매니저/사업주 등) 선택 및 기본 프로필 입력 화면 구현
+
+### 구현 세부 사항
+1. 'pages/profile/RoleSelect.tsx' 컴포넌트 생성
+2. 역할 목록을 Supabase 테이블에서 조회하여 라디오 버튼 또는 카드 UI로 렌더링
+3. 선택 완료 시 'pages/profile/EditProfile.tsx'로 자동 라우팅
+4. EditProfile에서 이름, 소개, 경력 입력 폼 구현 및 유효성 검사(필수/최대 길이)
+5. 입력 데이터를 Supabase 'profiles' 테이블에 저장 API 호출 구현
+6. 저장 완료 후 커뮤니티 메인으로 리다이렉트
+
+### 테스트 전략
+- 역할 선택 시 라디오 버튼 동작 확인
+- 잘못된 입력(빈값, 과도한 길이) 시 에러 메시지 검증
+- 프로필 저장 API 호출 모킹 및 성공/실패 시나리오 테스트
+
+---
+
+**Created:** 2025-07-25T02:46:34.973Z
+**Updated:** 2025-07-25T02:46:34.973Z

@@ -1,0 +1,33 @@
+
+# 통합 인증 플로우 UI/UX 구현
+
+**Task ID:** T-011
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 6/10
+**Urgency:** 10/10
+**Dependencies:** T-006, T-003
+
+## Description
+
+### 설명
+구글/애플/이메일/전화번호 기반 회원가입·로그인 화면 및 인증 상태 관리 구현
+
+### 구현 세부 사항
+1. 'pages/auth/Login.tsx'와 'pages/auth/Register.tsx' 컴포넌트 생성
+2. Firebase Auth 또는 Clerk 연동으로 Google/Apple OAuth 버튼 구현
+3. 이메일/전화번호 입력 폼 및 OTP(또는 비밀번호) 인증 로직 추가
+4. Zustand 또는 Context API로 인증 상태(로딩, 에러, 사용자 정보) 전역 관리 설정
+5. 로딩 및 에러 UI 컴포넌트화(토스트, 스피너)
+6. 인증 성공 시 토큰 저장 및 메인 페이지로 리다이렉트 처리
+
+### 테스트 전략
+- OAuth 버튼 클릭 시 mock Firebase/Clerk 시뮬레이션
+- 이메일/전화번호 유효성 검사 유닛 테스트
+- 인증 성공/실패 토스트 메시지 표시 확인
+- 모바일과 데스크톱 뷰포트에서 레이아웃 검증
+
+---
+
+**Created:** 2025-07-25T02:46:34.973Z
+**Updated:** 2025-07-25T02:46:34.973Z

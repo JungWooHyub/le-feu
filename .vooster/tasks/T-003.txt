@@ -1,7 +1,7 @@
 # 공통 UI 패키지(@repo/ui) 세팅
 
 **Task ID:** T-003
-**Status:** BACKLOG
+**Status:** DONE
 **Importance:** SHOULD
 **Complexity:** 5/10
 **Urgency:** 8/10
@@ -26,4 +26,4 @@ packages/ui 디렉토리에 Button, Layout, Card 등 재사용 가능한 UI 컴�
 ---
 
 **Created:** 2025-07-23T06:15:34.997Z
-**Updated:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-25T02:36:58.339Z

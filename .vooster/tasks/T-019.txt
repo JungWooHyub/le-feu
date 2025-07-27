@@ -1,0 +1,31 @@
+# 반응형 UI/접근성/WCAG 대응
+
+**Task ID:** T-019
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 5/10
+**Urgency:** 8/10
+**Dependencies:** T-014, T-015, T-016, T-017, T-018
+
+## Description
+
+### 설명
+모바일·태블릿·데스크톱 반응형 디자인 및 WCAG 2.1 AA 기준 접근성 준수
+
+### 구현 세부 사항
+1. Tailwind CSS의 반응형 유틸리티로 레이아웃 점검 및 개선
+2. 주요 버튼·링크에 aria-label, role 속성 추가
+3. 키보드 네비게이션(Tab, Enter) 테스트 및 focus 스타일 정의
+4. 색상 대비 비율 테스트(최소 AA 기준) 및 다크모드 고려한 컬러 팔레트 설정
+5. 이미지 대체텍스트, 폼 라벨 연결 등 시멘틱 태그 활용 강화
+6. Lighthouse 및 axe-core로 자동화된 접근성 테스트 파이프라인 구성
+
+### 테스트 전략
+- 다양한 뷰포트(320px~1920px)에서 레이아웃 검증
+- 키보드 전용 네비게이션 시나리오 테스트
+- Lighthouse, axe-core 접근성 레포트 확인
+
+---
+
+**Created:** 2025-07-25T02:46:34.973Z
+**Updated:** 2025-07-25T02:46:34.973Z

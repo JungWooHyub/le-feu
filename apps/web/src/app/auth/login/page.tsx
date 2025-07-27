@@ -112,6 +112,14 @@ export default function LoginPage() {
 
       const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
       const provider = new GoogleAuthProvider();
+      
+      // 팝업 차단 방지를 위한 추가 설정
+      provider.addScope('email');
+      provider.addScope('profile');
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
@@ -136,7 +144,21 @@ export default function LoginPage() {
       setTimeout(() => router.push('/'), 1000);
     } catch (err: any) {
       console.error('Google login error:', err);
-      setError('Google 로그인 중 오류가 발생했습니다.');
+      
+      let errorMessage = 'Google 로그인 중 오류가 발생했습니다.';
+      if (err.code === 'auth/popup-closed-by-user') {
+        errorMessage = '로그인 창이 닫혔습니다. 다시 시도해주세요.';
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = '팝업이 차단되었습니다. 브라우저 설정을 확인해주세요.';
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        errorMessage = '이미 다른 로그인 요청이 진행 중입니다.';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Google 로그인이 활성화되지 않았습니다. 관리자에게 문의하세요.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = '현재 도메인에서 Google 로그인이 허용되지 않습니다.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -156,6 +178,14 @@ export default function LoginPage() {
 
       const { signInWithPopup, OAuthProvider } = await import('firebase/auth');
       const provider = new OAuthProvider('apple.com');
+      
+      // Apple 로그인 추가 설정
+      provider.addScope('email');
+      provider.addScope('name');
+      provider.setCustomParameters({
+        locale: 'ko'
+      });
+      
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
@@ -180,7 +210,23 @@ export default function LoginPage() {
       setTimeout(() => router.push('/'), 1000);
     } catch (err: any) {
       console.error('Apple login error:', err);
-      setError('Apple 로그인 중 오류가 발생했습니다.');
+      
+      let errorMessage = 'Apple 로그인 중 오류가 발생했습니다.';
+      if (err.code === 'auth/popup-closed-by-user') {
+        errorMessage = '로그인 창이 닫혔습니다. 다시 시도해주세요.';
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = '팝업이 차단되었습니다. 브라우저 설정을 확인해주세요.';
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        errorMessage = '이미 다른 로그인 요청이 진행 중입니다.';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Apple 로그인이 활성화되지 않았습니다. 관리자에게 문의하세요.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = '현재 도메인에서 Apple 로그인이 허용되지 않습니다.';
+      } else if (err.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = '다른 로그인 방식으로 이미 가입된 계정입니다.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

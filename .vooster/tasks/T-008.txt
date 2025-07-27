@@ -1,7 +1,7 @@
 # 환경변수 분리 및 설정 가이드
 
 **Task ID:** T-008
-**Status:** BACKLOG
+**Status:** DONE
 **Importance:** MUST
 **Complexity:** 3/10
 **Urgency:** 8/10
@@ -25,4 +25,4 @@
 ---
 
 **Created:** 2025-07-23T06:15:34.997Z
-**Updated:** 2025-07-23T06:15:34.997Z
+**Updated:** 2025-07-25T02:37:04.099Z
