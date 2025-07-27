@@ -12,6 +12,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '15');
     const category = searchParams.get('category'); // question, review, free, job_posting
     const sort = searchParams.get('sort') || 'latest'; // latest, popular, oldest
+    const search = searchParams.get('search'); // 검색어
+    const tags = searchParams.get('tags')?.split(',').filter(Boolean) || []; // 태그 필터
+    const dateRange = searchParams.get('dateRange') || 'all'; // 날짜 범위 필터
+    const minLikes = parseInt(searchParams.get('minLikes') || '0'); // 최소 좋아요 수
 
     // Supabase 클라이언트 생성
     const supabase = createClient(
@@ -48,6 +52,44 @@ export async function GET(request: NextRequest) {
       query = query.eq('category', category);
     }
 
+    // 검색 필터 적용 (제목, 내용, 작성자명에서 검색)
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,author.display_name.ilike.%${search}%`);
+    }
+
+    // 태그 필터 적용
+    if (tags.length > 0) {
+      // PostgreSQL의 배열 연산자 사용
+      query = query.overlaps('tags', tags);
+    }
+
+    // 날짜 범위 필터 적용
+    if (dateRange !== 'all') {
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (dateRange) {
+        case 'today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'week':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'month':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = new Date(0);
+      }
+      
+      query = query.gte('created_at', startDate.toISOString());
+    }
+
+    // 최소 좋아요 수 필터 적용
+    if (minLikes > 0) {
+      query = query.gte('like_count', minLikes);
+    }
+
     // 정렬 조건 적용
     switch (sort) {
       case 'popular':
@@ -77,11 +119,55 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 총 개수 조회 (페이지네이션용)
-    const { count: totalCount } = await supabase
+    // 총 개수 조회 (페이지네이션용) - 같은 필터 적용
+    let countQuery = supabase
       .from('community_posts')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'published');
+
+    // 카테고리 필터 적용
+    if (category) {
+      countQuery = countQuery.eq('category', category);
+    }
+
+    // 검색 필터 적용
+    if (search) {
+      countQuery = countQuery.or(`title.ilike.%${search}%,content.ilike.%${search}%,author.display_name.ilike.%${search}%`);
+    }
+
+    // 태그 필터 적용
+    if (tags.length > 0) {
+      countQuery = countQuery.overlaps('tags', tags);
+    }
+
+    // 날짜 범위 필터 적용
+    if (dateRange !== 'all') {
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (dateRange) {
+        case 'today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'week':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'month':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = new Date(0);
+      }
+      
+      countQuery = countQuery.gte('created_at', startDate.toISOString());
+    }
+
+    // 최소 좋아요 수 필터 적용
+    if (minLikes > 0) {
+      countQuery = countQuery.gte('like_count', minLikes);
+    }
+
+    const { count: totalCount } = await countQuery;
 
     const totalPages = Math.ceil((totalCount || 0) / limit);
 

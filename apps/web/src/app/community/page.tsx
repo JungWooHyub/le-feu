@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { MessageSquare, Heart, Eye, Clock, Users, Briefcase, HelpCircle, Star, Plus } from 'lucide-react';
+import { MessageSquare, Heart, Eye, Clock, Users, Briefcase, HelpCircle, Star, Plus, Search, Filter, X, Tag } from 'lucide-react';
 
 interface CommunityPost {
   id: string;
@@ -57,16 +57,38 @@ export default function CommunityPage() {
     hasPrev: false
   });
   
+  // 검색 및 필터 상태
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [minLikes, setMinLikes] = useState<number>(0);
+  
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   
   const currentCategory = searchParams.get('category') || 'all';
   const currentSort = searchParams.get('sort') || 'latest';
   const currentPage = parseInt(searchParams.get('page') || '1');
+  const urlSearchQuery = searchParams.get('search') || '';
+  const urlTags = searchParams.get('tags')?.split(',').filter(Boolean) || [];
+  const urlDateRange = (searchParams.get('dateRange') as typeof dateRange) || 'all';
+  const urlMinLikes = parseInt(searchParams.get('minLikes') || '0');
+
+  // URL 파라미터로부터 상태 초기화
+  useEffect(() => {
+    setSearchQuery(urlSearchQuery);
+    setSearchInput(urlSearchQuery);
+    setSelectedTags(urlTags);
+    setDateRange(urlDateRange);
+    setMinLikes(urlMinLikes);
+  }, [urlSearchQuery, urlTags, urlDateRange, urlMinLikes]);
 
   useEffect(() => {
     loadPosts();
-  }, [currentCategory, currentSort, currentPage]);
+  }, [currentCategory, currentSort, currentPage, urlSearchQuery, urlTags, urlDateRange, urlMinLikes]);
 
   const loadPosts = async () => {
     try {
@@ -80,6 +102,26 @@ export default function CommunityPage() {
       
       if (currentCategory !== 'all') {
         params.set('category', currentCategory);
+      }
+
+      // 검색 파라미터 추가
+      if (urlSearchQuery) {
+        params.set('search', urlSearchQuery);
+      }
+
+      // 태그 필터 추가
+      if (urlTags.length > 0) {
+        params.set('tags', urlTags.join(','));
+      }
+
+      // 날짜 범위 필터 추가
+      if (urlDateRange !== 'all') {
+        params.set('dateRange', urlDateRange);
+      }
+
+      // 최소 좋아요 수 필터 추가
+      if (urlMinLikes > 0) {
+        params.set('minLikes', urlMinLikes.toString());
       }
 
       const response = await fetch(`/api/community?${params}`);
@@ -139,6 +181,75 @@ export default function CommunityPage() {
     router.push(`/community?${newParams.toString()}`);
   };
 
+  // 검색 기능
+  const handleSearch = () => {
+    const newParams = new URLSearchParams();
+    
+    if (currentCategory !== 'all') {
+      newParams.set('category', currentCategory);
+    }
+    if (currentSort !== 'latest') {
+      newParams.set('sort', currentSort);
+    }
+    if (searchInput.trim()) {
+      newParams.set('search', searchInput.trim());
+    }
+    if (selectedTags.length > 0) {
+      newParams.set('tags', selectedTags.join(','));
+    }
+    if (dateRange !== 'all') {
+      newParams.set('dateRange', dateRange);
+    }
+    if (minLikes > 0) {
+      newParams.set('minLikes', minLikes.toString());
+    }
+    
+    router.push(`/community?${newParams.toString()}`);
+  };
+
+  const handleSearchInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchInput('');
+    setSearchQuery('');
+    setSelectedTags([]);
+    setDateRange('all');
+    setMinLikes(0);
+    
+    const newParams = new URLSearchParams();
+    if (currentCategory !== 'all') {
+      newParams.set('category', currentCategory);
+    }
+    if (currentSort !== 'latest') {
+      newParams.set('sort', currentSort);
+    }
+    
+    router.push(`/community?${newParams.toString()}`);
+  };
+
+  const handleTagToggle = (tag: string) => {
+    const newTags = selectedTags.includes(tag)
+      ? selectedTags.filter(t => t !== tag)
+      : [...selectedTags, tag];
+    
+    setSelectedTags(newTags);
+  };
+
+  const applyFilters = () => {
+    handleSearch();
+    setShowFilters(false);
+  };
+
+  // 인기 태그 목록 (실제로는 API에서 가져와야 함)
+  const popularTags = [
+    '신입', '경력', '면접', '레시피', '팁', '창업', '프랜차이즈', 
+    '급여', '근무환경', '교육', '자격증', '트렌드', '메뉴개발'
+  ];
+
   const getCategoryColor = (category: string) => {
     const categoryInfo = categories.find(c => c.id === category);
     return categoryInfo?.color || 'text-gray-600';
@@ -195,6 +306,186 @@ export default function CommunityPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* 검색 및 필터 섹션 */}
+        <div className="bg-white rounded-lg shadow-sm border mb-6 p-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* 검색바 */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={handleSearchInputKeyDown}
+                  placeholder="제목, 내용, 작성자로 검색..."
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+                {(searchQuery || selectedTags.length > 0 || dateRange !== 'all' || minLikes > 0) && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 검색 및 필터 버튼들 */}
+            <div className="flex gap-2">
+              <button
+                onClick={handleSearch}
+                className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+              >
+                검색
+              </button>
+              
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center space-x-2 px-4 py-3 border rounded-lg transition-colors ${
+                  showFilters 
+                    ? 'bg-primary-50 border-primary-200 text-primary-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Filter className="h-4 w-4" />
+                <span>필터</span>
+                {(selectedTags.length > 0 || dateRange !== 'all' || minLikes > 0) && (
+                  <span className="bg-primary-500 text-white text-xs rounded-full px-2 py-1">
+                    {selectedTags.length + (dateRange !== 'all' ? 1 : 0) + (minLikes > 0 ? 1 : 0)}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* 고급 필터 패널 */}
+          {showFilters && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* 태그 필터 */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Tag className="h-4 w-4 mr-2" />
+                    태그
+                  </h4>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {popularTags.map((tag) => (
+                      <label key={tag} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedTags.includes(tag)}
+                          onChange={() => handleTagToggle(tag)}
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{tag}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 날짜 범위 필터 */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Clock className="h-4 w-4 mr-2" />
+                    기간
+                  </h4>
+                  <select
+                    value={dateRange}
+                    onChange={(e) => setDateRange(e.target.value as typeof dateRange)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="all">전체 기간</option>
+                    <option value="today">오늘</option>
+                    <option value="week">최근 1주일</option>
+                    <option value="month">최근 1개월</option>
+                  </select>
+                </div>
+
+                {/* 최소 좋아요 수 필터 */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Heart className="h-4 w-4 mr-2" />
+                    최소 좋아요
+                  </h4>
+                  <input
+                    type="number"
+                    min="0"
+                    value={minLikes}
+                    onChange={(e) => setMinLikes(parseInt(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              {/* 필터 적용 버튼 */}
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={applyFilters}
+                  className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+                >
+                  필터 적용
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 활성 필터 표시 */}
+          {(searchQuery || selectedTags.length > 0 || dateRange !== 'all' || minLikes > 0) && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center flex-wrap gap-2">
+                <span className="text-sm text-gray-600">활성 필터:</span>
+                
+                {searchQuery && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    검색: "{searchQuery}"
+                  </span>
+                )}
+                
+                {selectedTags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    태그: {tag}
+                    <button
+                      onClick={() => handleTagToggle(tag)}
+                      className="ml-1 text-green-600 hover:text-green-800"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+                
+                {dateRange !== 'all' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    기간: {dateRange === 'today' ? '오늘' : dateRange === 'week' ? '최근 1주일' : '최근 1개월'}
+                  </span>
+                )}
+                
+                {minLikes > 0 && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    좋아요: {minLikes}개 이상
+                  </span>
+                )}
+                
+                <button
+                  onClick={clearSearch}
+                  className="text-xs text-gray-500 hover:text-gray-700 underline"
+                >
+                  모두 지우기
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* 카테고리 탭 */}
         <div className="bg-white rounded-lg shadow-sm border mb-6">
           <div className="flex flex-wrap border-b">
