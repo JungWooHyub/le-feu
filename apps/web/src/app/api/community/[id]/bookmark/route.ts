@@ -68,7 +68,7 @@ export async function POST(
 
     // 게시글 존재 확인
     const { data: post } = await supabase
-      .from('posts')
+      .from('community_posts')
       .select('id, bookmark_count')
       .eq('id', postId)
       .single();
@@ -82,7 +82,7 @@ export async function POST(
 
     // 기존 북마크 확인
     const { data: existingBookmark } = await supabase
-      .from('bookmarks')
+      .from('community_bookmarks')
       .select('id')
       .eq('post_id', postId)
       .eq('user_id', userId)
@@ -94,7 +94,7 @@ export async function POST(
     if (existingBookmark) {
       // 북마크 제거
       const { error: deleteError } = await supabase
-        .from('bookmarks')
+        .from('community_bookmarks')
         .delete()
         .eq('post_id', postId)
         .eq('user_id', userId);
@@ -108,7 +108,7 @@ export async function POST(
     } else {
       // 북마크 추가
       const { error: insertError } = await supabase
-        .from('bookmarks')
+        .from('community_bookmarks')
         .insert({
           post_id: postId,
           user_id: userId,
@@ -125,7 +125,7 @@ export async function POST(
 
     // 게시글의 북마크 수 업데이트
     const { error: updateError } = await supabase
-      .from('posts')
+      .from('community_posts')
       .update({
         bookmark_count: newBookmarkCount,
         updated_at: new Date().toISOString()

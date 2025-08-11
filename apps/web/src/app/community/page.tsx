@@ -90,6 +90,10 @@ export default function CommunityPage() {
     loadPosts();
   }, [currentCategory, currentSort, currentPage, urlSearchQuery, urlTags, urlDateRange, urlMinLikes]);
 
+  useEffect(() => {
+    loadPopularTags();
+  }, []);
+
   const loadPosts = async () => {
     try {
       setLoading(true);
@@ -139,6 +143,20 @@ export default function CommunityPage() {
       setPosts([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPopularTags = async () => {
+    try {
+      const response = await fetch('/api/community/tags?limit=15');
+      if (response.ok) {
+        const data = await response.json();
+        const tags = data.data.map((item: any) => item.tag || item);
+        setPopularTags(tags);
+      }
+    } catch (error) {
+      console.error('인기 태그 로드 오류:', error);
+      // 기본값 유지
     }
   };
 
@@ -244,11 +262,11 @@ export default function CommunityPage() {
     setShowFilters(false);
   };
 
-  // 인기 태그 목록 (실제로는 API에서 가져와야 함)
-  const popularTags = [
+  // 인기 태그 목록
+  const [popularTags, setPopularTags] = useState<string[]>([
     '신입', '경력', '면접', '레시피', '팁', '창업', '프랜차이즈', 
     '급여', '근무환경', '교육', '자격증', '트렌드', '메뉴개발'
-  ];
+  ]);
 
   const getCategoryColor = (category: string) => {
     const categoryInfo = categories.find(c => c.id === category);
@@ -319,7 +337,7 @@ export default function CommunityPage() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={handleSearchInputKeyDown}
-                  placeholder="제목, 내용, 작성자로 검색..."
+                  placeholder="제목, 내용으로 검색..."
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
                 {(searchQuery || selectedTags.length > 0 || dateRange !== 'all' || minLikes > 0) && (

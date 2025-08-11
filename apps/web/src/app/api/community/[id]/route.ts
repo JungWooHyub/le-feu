@@ -52,7 +52,7 @@ export async function GET(
 
     // 게시글 조회
     const { data: post, error: postError } = await supabase
-      .from('posts')
+      .from('community_posts')
       .select(`
         *,
         author:profiles(id, display_name, avatar_url, role)
@@ -69,7 +69,7 @@ export async function GET(
 
     // 조회수 증가
     await supabase
-      .from('posts')
+      .from('community_posts')
       .update({ 
         view_count: (post.view_count || 0) + 1,
         updated_at: new Date().toISOString()
@@ -83,7 +83,7 @@ export async function GET(
     if (currentUserId) {
       // 좋아요 상태 확인
       const { data: likeData } = await supabase
-        .from('post_likes')
+        .from('community_likes')
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', currentUserId)
@@ -93,7 +93,7 @@ export async function GET(
 
       // 북마크 상태 확인
       const { data: bookmarkData } = await supabase
-        .from('bookmarks')
+        .from('community_bookmarks')
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', currentUserId)
@@ -157,7 +157,7 @@ export async function PATCH(
 
     // 게시글 소유자 확인
     const { data: post } = await supabase
-      .from('posts')
+      .from('community_posts')
       .select('author_id')
       .eq('id', postId)
       .single();
@@ -175,7 +175,7 @@ export async function PATCH(
 
     // 게시글 업데이트
     const { data: updatedPost, error: updateError } = await supabase
-      .from('posts')
+      .from('community_posts')
       .update({
         title,
         content,
@@ -243,7 +243,7 @@ export async function DELETE(
 
     // 게시글 소유자 확인
     const { data: post } = await supabase
-      .from('posts')
+      .from('community_posts')
       .select('author_id')
       .eq('id', postId)
       .single();
@@ -257,7 +257,7 @@ export async function DELETE(
 
     // 게시글 삭제 (CASCADE로 관련 데이터도 함께 삭제)
     const { error: deleteError } = await supabase
-      .from('posts')
+      .from('community_posts')
       .delete()
       .eq('id', postId);
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Heart, Bookmark, MessageSquare, Send, MoreVertical, Reply, Edit, Trash2, Flag } from 'lucide-react';
+import { ArrowLeft, Heart, Bookmark, MessageSquare, Send, MoreVertical, Reply, Edit, Trash2, Flag, Edit3 } from 'lucide-react';
 
 interface Post {
   id: string;
@@ -93,7 +93,7 @@ export default function PostDetailPage() {
           .on('postgres_changes', {
             event: '*',
             schema: 'public',
-            table: 'comments',
+            table: 'community_comments',
             filter: `post_id=eq.${postId}`
           }, (payload) => {
             console.log('Real-time comment update:', payload);
@@ -117,18 +117,12 @@ export default function PostDetailPage() {
 
   const checkAuthUser = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) return;
-
-      const response = await fetch('/api/auth/profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCurrentUserId(data.data.id);
+      const { getFirebaseAuth } = await import('../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (currentUser) {
+        setCurrentUserId(currentUser.uid);
       }
     } catch (error) {
       console.error('Auth check error:', error);
@@ -139,10 +133,20 @@ export default function PostDetailPage() {
     try {
       setLoading(true);
       
-      const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      
+      try {
+        const { getFirebaseAuth } = await import('../../../lib/firebase');
+        const { auth } = getFirebaseAuth();
+        const currentUser = auth?.currentUser;
+        
+        if (currentUser) {
+          const token = await currentUser.getIdToken();
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      } catch (error) {
+        // 인증 실패해도 게시글은 조회 가능
+        console.log('Auth not available, proceeding as guest');
       }
 
       const response = await fetch(`/api/community/${postId}`, {
@@ -168,10 +172,19 @@ export default function PostDetailPage() {
     try {
       setCommentsLoading(true);
       
-      const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      
+      try {
+        const { getFirebaseAuth } = await import('../../../lib/firebase');
+        const { auth } = getFirebaseAuth();
+        const currentUser = auth?.currentUser;
+        
+        if (currentUser) {
+          const token = await currentUser.getIdToken();
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      } catch (error) {
+        console.log('Auth not available for comments');
       }
 
       const response = await fetch(`/api/community/${postId}/comments`, {
@@ -194,11 +207,16 @@ export default function PostDetailPage() {
     if (!post || !currentUserId) return;
 
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
+      const { getFirebaseAuth } = await import('../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (!currentUser) {
         router.push('/auth/login');
         return;
       }
+
+      const token = await currentUser.getIdToken();
 
       const response = await fetch(`/api/community/${postId}/like`, {
         method: 'POST',
@@ -224,11 +242,16 @@ export default function PostDetailPage() {
     if (!post || !currentUserId) return;
 
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
+      const { getFirebaseAuth } = await import('../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (!currentUser) {
         router.push('/auth/login');
         return;
       }
+
+      const token = await currentUser.getIdToken();
 
       const response = await fetch(`/api/community/${postId}/bookmark`, {
         method: 'POST',
@@ -256,11 +279,16 @@ export default function PostDetailPage() {
     try {
       setSubmittingComment(true);
       
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
+      const { getFirebaseAuth } = await import('../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (!currentUser) {
         router.push('/auth/login');
         return;
       }
+
+      const token = await currentUser.getIdToken();
 
       const response = await fetch(`/api/community/${postId}/comments`, {
         method: 'POST',
@@ -294,11 +322,16 @@ export default function PostDetailPage() {
     try {
       setSubmittingComment(true);
       
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
+      const { getFirebaseAuth } = await import('../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (!currentUser) {
         router.push('/auth/login');
         return;
       }
+
+      const token = await currentUser.getIdToken();
 
       const response = await fetch(`/api/community/${postId}/comments`, {
         method: 'POST',
@@ -376,8 +409,13 @@ export default function PostDetailPage() {
 
   const deleteComment = async (commentId: string) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) return;
+      const { getFirebaseAuth } = await import('../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (!currentUser) return;
+
+      const token = await currentUser.getIdToken();
 
       const response = await fetch(`/api/community/${postId}/comments/${commentId}`, {
         method: 'DELETE',
@@ -392,6 +430,44 @@ export default function PostDetailPage() {
 
     } catch (error: any) {
       console.error('Comment delete error:', error);
+      alert(error.message);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!confirm('게시글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      return;
+    }
+
+    try {
+      const { getFirebaseAuth } = await import('../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (!currentUser) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const token = await currentUser.getIdToken();
+
+      const response = await fetch(`/api/community/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '게시글 삭제에 실패했습니다.');
+      }
+
+      alert('게시글이 삭제되었습니다.');
+      router.push('/community');
+
+    } catch (error: any) {
+      console.error('Post delete error:', error);
       alert(error.message);
     }
   };
@@ -466,7 +542,13 @@ export default function PostDetailPage() {
                     onClick={async () => {
                       // 댓글 수정 API 호출
                       try {
-                        const token = localStorage.getItem('auth_token');
+                        const { getFirebaseAuth } = await import('../../../lib/firebase');
+                        const { auth } = getFirebaseAuth();
+                        const currentUser = auth?.currentUser;
+                        
+                        if (!currentUser) return;
+
+                        const token = await currentUser.getIdToken();
                         const response = await fetch(`/api/community/${postId}/comments/${comment.id}`, {
                           method: 'PATCH',
                           headers: {
@@ -630,24 +712,46 @@ export default function PostDetailPage() {
         <div className="bg-white rounded-lg shadow-sm border mb-6">
           <div className="p-6">
             {/* 게시글 헤더 */}
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center">
-                {post.author.avatar_url ? (
-                  <img
-                    src={post.author.avatar_url}
-                    alt={post.author.display_name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-primary-600 font-semibold">
-                    {post.author.display_name.charAt(0)}
-                  </span>
-                )}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center">
+                  {post.author.avatar_url ? (
+                    <img
+                      src={post.author.avatar_url}
+                      alt={post.author.display_name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-primary-600 font-semibold">
+                      {post.author.display_name.charAt(0)}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-900">{post.author.display_name}</div>
+                  <div className="text-sm text-gray-500">{formatTimeAgo(post.created_at)}</div>
+                </div>
               </div>
-              <div>
-                <div className="font-semibold text-gray-900">{post.author.display_name}</div>
-                <div className="text-sm text-gray-500">{formatTimeAgo(post.created_at)}</div>
-              </div>
+
+              {/* 게시글 작성자인 경우 수정/삭제 버튼 */}
+              {currentUserId && post.author.id === currentUserId && (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => router.push(`/community/${postId}/edit`)}
+                    className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    <span className="text-sm">수정</span>
+                  </button>
+                  <button
+                    onClick={handleDeletePost}
+                    className="flex items-center space-x-1 px-3 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="text-sm">삭제</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* 제목 */}

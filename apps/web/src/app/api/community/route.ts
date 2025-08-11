@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { validatePostData } from '../../../lib/validation';
+import { postRateLimit } from '../../../lib/rateLimit';
 
 /**
  * 커뮤니티 게시물 목록 조회 API
@@ -7,7 +9,7 @@ import { createClient } from '@supabase/supabase-js';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '15');
     const category = searchParams.get('category'); // question, review, free, job_posting
@@ -52,9 +54,9 @@ export async function GET(request: NextRequest) {
       query = query.eq('category', category);
     }
 
-    // 검색 필터 적용 (제목, 내용, 작성자명에서 검색)
+    // 검색 필터 적용 (제목, 내용에서 검색)
     if (search) {
-      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,author.display_name.ilike.%${search}%`);
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
     }
 
     // 태그 필터 적용
@@ -132,7 +134,7 @@ export async function GET(request: NextRequest) {
 
     // 검색 필터 적용
     if (search) {
-      countQuery = countQuery.or(`title.ilike.%${search}%,content.ilike.%${search}%,author.display_name.ilike.%${search}%`);
+      countQuery = countQuery.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
     }
 
     // 태그 필터 적용
@@ -198,26 +200,39 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting 확인
+    const rateLimitResult = postRateLimit(request);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { 
+          error: '너무 많은 게시글 작성 요청입니다. 잠시 후 다시 시도해주세요.',
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString()
+          }
+        }
+      );
+    }
+
     // 요청 본문 파싱
     const body = await request.json();
-    const { title, content, category, tags } = body;
 
-    // 입력 검증
-    if (!title || !content || !category) {
+    // 입력 검증 및 정제
+    const validation = validatePostData(body);
+    if (!validation.isValid) {
       return NextResponse.json(
-        { error: '제목, 내용, 카테고리는 필수입니다.' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
-    // 카테고리 유효성 검증
-    const validCategories = ['question', 'review', 'free', 'job_posting'];
-    if (!validCategories.includes(category)) {
-      return NextResponse.json(
-        { error: '유효하지 않은 카테고리입니다.' },
-        { status: 400 }
-      );
-    }
+    const { title, content, category, tags } = validation.sanitized!;
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('authorization');

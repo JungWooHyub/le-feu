@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { validateComment } from '../../../../../lib/validation';
+import { commentRateLimit } from '../../../../../lib/rateLimit';
 
 // Firebase Admin 초기화
 if (getApps().length === 0 && process.env.FIREBASE_PROJECT_ID) {
@@ -51,7 +53,7 @@ export async function GET(
 
     // 댓글 조회 (부모 댓글만, 답글은 별도 조회)
     const { data: comments, error: commentsError } = await supabase
-      .from('comments')
+      .from('community_comments')
       .select(`
         *,
         author:profiles(id, display_name, avatar_url, role)
@@ -72,7 +74,7 @@ export async function GET(
       (comments || []).map(async (comment) => {
         // 답글 조회
         const { data: replies } = await supabase
-          .from('comments')
+          .from('community_comments')
           .select(`
             *,
             author:profiles(id, display_name, avatar_url, role)
@@ -82,7 +84,7 @@ export async function GET(
 
         // 댓글 좋아요 수 조회
         const { count: likeCount } = await supabase
-          .from('comment_likes')
+          .from('community_comment_likes')
           .select('*', { count: 'exact' })
           .eq('comment_id', comment.id);
 
@@ -90,7 +92,7 @@ export async function GET(
         let isLiked = false;
         if (currentUserId) {
           const { data: userLike } = await supabase
-            .from('comment_likes')
+            .from('community_comment_likes')
             .select('id')
             .eq('comment_id', comment.id)
             .eq('user_id', currentUserId)
@@ -103,14 +105,14 @@ export async function GET(
         const repliesWithLikes = await Promise.all(
           (replies || []).map(async (reply) => {
             const { count: replyLikeCount } = await supabase
-              .from('comment_likes')
+              .from('community_comment_likes')
               .select('*', { count: 'exact' })
               .eq('comment_id', reply.id);
 
             let isReplyLiked = false;
             if (currentUserId) {
               const { data: userReplyLike } = await supabase
-                .from('comment_likes')
+                .from('community_comment_likes')
                 .select('id')
                 .eq('comment_id', reply.id)
                 .eq('user_id', currentUserId)
@@ -121,7 +123,7 @@ export async function GET(
 
             return {
               ...reply,
-              like_count: likeCount || 0,
+              like_count: replyLikeCount || 0,
               is_liked: isReplyLiked
             };
           })
@@ -160,6 +162,26 @@ export async function POST(
   try {
     const postId = params.id;
 
+    // Rate limiting 확인
+    const rateLimitResult = commentRateLimit(request);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { 
+          error: '너무 많은 댓글 작성 요청입니다. 잠시 후 다시 시도해주세요.',
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString()
+          }
+        }
+      );
+    }
+
     // 인증 확인
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -184,16 +206,18 @@ export async function POST(
     const body = await request.json();
     const { content, parent_id } = body;
 
-    if (!content || !content.trim()) {
+    // 입력 검증
+    const validation = validateComment(content);
+    if (!validation.isValid) {
       return NextResponse.json(
-        { error: '댓글 내용을 입력해주세요.' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
     // 게시글 존재 확인
     const { data: post } = await supabase
-      .from('posts')
+      .from('community_posts')
       .select('id')
       .eq('id', postId)
       .single();
@@ -208,7 +232,7 @@ export async function POST(
     // 부모 댓글 존재 확인 (답글인 경우)
     if (parent_id) {
       const { data: parentComment } = await supabase
-        .from('comments')
+        .from('community_comments')
         .select('id')
         .eq('id', parent_id)
         .eq('post_id', postId)
@@ -224,7 +248,7 @@ export async function POST(
 
     // 댓글 생성
     const { data: newComment, error: insertError } = await supabase
-      .from('comments')
+      .from('community_comments')
       .insert({
         post_id: postId,
         author_id: decodedToken.uid,
@@ -249,12 +273,12 @@ export async function POST(
 
     // 게시글의 댓글 수 업데이트
     const { count: totalComments } = await supabase
-      .from('comments')
+      .from('community_comments')
       .select('*', { count: 'exact' })
       .eq('post_id', postId);
 
     await supabase
-      .from('posts')
+      .from('community_posts')
       .update({ 
         comment_count: totalComments || 0,
         updated_at: new Date().toISOString()

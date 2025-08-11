@@ -42,7 +42,11 @@ export default function MobileBottomNav() {
       <div className="h-20 md:hidden" />
       
       {/* 하단 탭바 - 모바일에서만 표시 */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <nav 
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50"
+        role="navigation"
+        aria-label="주요 네비게이션"
+      >
         <div className="flex items-center justify-around h-20 px-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -52,7 +56,9 @@ export default function MobileBottomNav() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-2 py-1 rounded-lg transition-colors ${
+                aria-label={`${tab.label} 페이지로 이동${isActive ? ' (현재 페이지)' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-2 py-1 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                   isActive
                     ? 'text-primary-500 bg-primary-50'
                     : 'text-gray-600 hover:text-primary-500 hover:bg-gray-50'
@@ -68,8 +74,11 @@ export default function MobileBottomNav() {
         </div>
         
         {/* iOS 스타일 홈 인디케이터 */}
-        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-300 rounded-full" />
-      </div>
+        <div 
+          className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-300 rounded-full" 
+          aria-hidden="true"
+        />
+      </nav>
     </>
   );
 } 

@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 interface MobileHeaderProps {
   title: string;
   showBackButton?: boolean;
@@ -23,13 +25,16 @@ export default function MobileHeader({
             {showBackButton ? (
               <button
                 onClick={onBackClick}
-                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="이전 페이지로 돌아가기"
+                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <svg
                   className="w-6 h-6 text-gray-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  role="img"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -43,7 +48,7 @@ export default function MobileHeader({
               <div className="flex items-center space-x-2">
                 <img 
                   src="/logo_lefeu_0-removebg-preview.png" 
-                  alt="le feu" 
+                  alt="le feu 로고" 
                   className="h-7 w-7 object-contain" 
                 />
                 <span className="text-lg font-bold text-gray-900">le feu</span>
@@ -53,7 +58,7 @@ export default function MobileHeader({
 
           {/* 중앙: 타이틀 */}
           <div className="flex-1 text-center">
-            <h1 className="text-lg font-semibold text-gray-900 truncate px-2">
+            <h1 className="text-lg font-semibold text-gray-900 truncate px-2" role="heading" aria-level={1}>
               {title}
             </h1>
           </div>
@@ -76,26 +81,29 @@ export default function MobileHeader({
             <div className="flex items-center space-x-3">
               <img 
                 src="/logo_lefeu_0-removebg-preview.png" 
-                alt="le feu" 
+                alt="le feu 로고" 
                 className="h-8 w-8 object-contain" 
               />
               <span className="text-2xl font-bold text-gray-900">le feu</span>
             </div>
-            <nav className="flex space-x-8">
-              <a href="/" className="text-gray-700 hover:text-primary-500 transition-colors">
+            <nav className="flex space-x-8" role="navigation" aria-label="주요 네비게이션">
+              <Link href="/" className="text-gray-700 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1">
                 홈
-              </a>
-              <a href="/curations" className="text-gray-700 hover:text-primary-500 transition-colors">
+              </Link>
+              <Link href="/curations" className="text-gray-700 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1">
                 큐레이션
-              </a>
-              <a href="/community" className="text-gray-700 hover:text-primary-500 transition-colors">
+              </Link>
+              <Link href="/community" className="text-gray-700 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1">
                 커뮤니티
-              </a>
-              <a href="/jobs" className="text-gray-700 hover:text-primary-500 transition-colors">
+              </Link>
+              <Link href="/jobs" className="text-gray-700 hover:text-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1">
                 채용
-              </a>
+              </Link>
             </nav>
-            <button className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors">
+            <button 
+              className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              aria-label="로그인 페이지로 이동"
+            >
               로그인
             </button>
           </div>

@@ -1,15 +1,24 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Image, Bold, Italic, List, Link, Save, Eye, Tag, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { ArrowLeft, Save, Eye, Bold, Italic, List, Link, Image } from 'lucide-react';
 
 interface PostForm {
   title: string;
   content: string;
   category: string;
-  tags: string[];
-  is_anonymous: boolean;
+}
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  author: {
+    id: string;
+    display_name: string;
+  };
 }
 
 const categories = [
@@ -19,25 +28,98 @@ const categories = [
   { id: 'job_posting', name: '구인', description: '채용 정보를 공유하세요' }
 ];
 
-export default function CreatePostPage() {
+export default function EditPostPage() {
+  const [post, setPost] = useState<Post | null>(null);
   const [form, setForm] = useState<PostForm>({
     title: '',
     content: '',
-    category: 'free',
-    tags: [],
-    is_anonymous: false
+    category: 'free'
   });
   
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(false);
   const [error, setError] = useState('');
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [tagInput, setTagInput] = useState('');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
   const contentRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
   const router = useRouter();
+  const params = useParams();
+  
+  const postId = params.id as string;
+
+  useEffect(() => {
+    if (postId) {
+      loadPost();
+      checkAuthUser();
+    }
+  }, [postId]);
+
+  const checkAuthUser = async () => {
+    try {
+      const { getFirebaseAuth } = await import('../../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (!currentUser) {
+        router.push('/auth/login');
+        return;
+      }
+
+      setCurrentUserId(currentUser.uid);
+    } catch (error) {
+      console.error('Auth check error:', error);
+      router.push('/auth/login');
+    }
+  };
+
+  const loadPost = async () => {
+    try {
+      setLoading(true);
+      
+      const { getFirebaseAuth } = await import('../../../../lib/firebase');
+      const { auth } = getFirebaseAuth();
+      const currentUser = auth?.currentUser;
+      
+      if (!currentUser) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const token = await currentUser.getIdToken();
+
+      const response = await fetch(`/api/community/${postId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('게시글을 찾을 수 없습니다.');
+        } else {
+          setError('게시글을 불러올 수 없습니다.');
+        }
+        return;
+      }
+
+      const data = await response.json();
+      const postData = data.data;
+      
+      setPost(postData);
+      setForm({
+        title: postData.title,
+        content: postData.content,
+        category: postData.category
+      });
+
+    } catch (error: any) {
+      console.error('Post load error:', error);
+      setError('게시글을 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,13 +134,17 @@ export default function CreatePostPage() {
       return;
     }
     
+    // 게시글 소유자 확인
+    if (!post || !currentUserId || post.author.id !== currentUserId) {
+      setError('게시글을 수정할 권한이 없습니다.');
+      return;
+    }
+    
     setSaving(true);
     setError('');
     
     try {
-      // Firebase에서 토큰 가져오기
-      const { getFirebaseAuth } = await import('../../../lib/firebase');
-      
+      const { getFirebaseAuth } = await import('../../../../lib/firebase');
       const { auth } = getFirebaseAuth();
       const currentUser = auth?.currentUser;
       
@@ -69,8 +155,8 @@ export default function CreatePostPage() {
 
       const token = await currentUser.getIdToken();
 
-      const response = await fetch('/api/community', {
-        method: 'POST',
+      const response = await fetch(`/api/community/${postId}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -78,80 +164,23 @@ export default function CreatePostPage() {
         body: JSON.stringify({
           title: form.title.trim(),
           content: form.content.trim(),
-          category: form.category,
-          tags: form.tags,
-          is_anonymous: form.is_anonymous
+          category: form.category
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || '게시글 작성에 실패했습니다.');
+        throw new Error(errorData.error || '게시글 수정에 실패했습니다.');
       }
 
-      const data = await response.json();
-      
       // 게시글 상세 페이지로 이동
-      router.push(`/community/${data.data.id}`);
+      router.push(`/community/${postId}`);
 
     } catch (error: any) {
-      console.error('Post creation error:', error);
+      console.error('Post update error:', error);
       setError(error.message);
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleImageUpload = async (file: File) => {
-    setUploadingImage(true);
-    
-    try {
-      // 임시: 이미지를 base64로 변환하여 직접 삽입
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        const imageMarkdown = `\n![이미지](${imageUrl})\n`;
-        
-        const textarea = contentRef.current;
-        if (textarea) {
-          const cursorPos = textarea.selectionStart;
-          const textBefore = form.content.substring(0, cursorPos);
-          const textAfter = form.content.substring(cursorPos);
-          
-          setForm(prev => ({
-            ...prev,
-            content: textBefore + imageMarkdown + textAfter
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
-      
-    } catch (error) {
-      console.error('Image upload error:', error);
-      alert('이미지 업로드에 실패했습니다.');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleFileSelect = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB 제한
-        alert('이미지 크기는 5MB 이하로 제한됩니다.');
-        return;
-      }
-      
-      if (!file.type.startsWith('image/')) {
-        alert('이미지 파일만 업로드 가능합니다.');
-        return;
-      }
-      
-      handleImageUpload(file);
     }
   };
 
@@ -172,7 +201,6 @@ export default function CreatePostPage() {
       content: textBefore + newText + textAfter
     }));
 
-    // 커서 위치 조정
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(
@@ -183,43 +211,60 @@ export default function CreatePostPage() {
   };
 
   const renderPreview = () => {
-    // 간단한 마크다운 렌더링
     let html = form.content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/^- (.+)$/gm, '<li>$1</li>')
       .replace(/\n/g, '<br>');
     
-    // 연속된 li 태그를 ul로 감싸기
     html = html.replace(/(<li>.*?<\/li>)(<br>)*(<li>.*?<\/li>)/g, '<ul>$1$3</ul>');
     
     return { __html: html };
   };
 
-  const handleAddTag = () => {
-    const tag = tagInput.trim();
-    if (tag && !form.tags.includes(tag) && form.tags.length < 10) {
-      setForm(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }));
-      setTagInput('');
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          <p className="mt-2 text-gray-600">게시글을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setForm(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
+  if (error && !post) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => router.back()}
+            className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+          >
+            돌아가기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
+  // 게시글 소유자가 아닌 경우
+  if (post && currentUserId && post.author.id !== currentUserId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">게시글을 수정할 권한이 없습니다.</p>
+          <button 
+            onClick={() => router.push(`/community/${postId}`)}
+            className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+          >
+            게시글로 돌아가기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -234,7 +279,7 @@ export default function CreatePostPage() {
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
-              <h1 className="text-xl font-semibold text-gray-900">글쓰기</h1>
+              <h1 className="text-xl font-semibold text-gray-900">게시글 수정</h1>
             </div>
             
             <div className="flex items-center space-x-3">
@@ -249,12 +294,12 @@ export default function CreatePostPage() {
               
               <button
                 type="submit"
-                form="post-form"
-                disabled={saving || uploadingImage}
+                form="edit-post-form"
+                disabled={saving}
                 className="flex items-center space-x-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="h-4 w-4" />
-                <span>{saving ? '발행 중...' : '발행'}</span>
+                <span>{saving ? '저장 중...' : '저장'}</span>
               </button>
             </div>
           </div>
@@ -269,7 +314,7 @@ export default function CreatePostPage() {
           </div>
         )}
 
-        <form id="post-form" onSubmit={handleSubmit} className="space-y-6">
+        <form id="edit-post-form" onSubmit={handleSubmit} className="space-y-6">
           {/* 카테고리 선택 */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">카테고리 선택</h3>
@@ -295,64 +340,6 @@ export default function CreatePostPage() {
                   <div className="text-sm text-gray-600 mt-1">{category.description}</div>
                 </label>
               ))}
-            </div>
-          </div>
-
-          {/* 태그 입력 */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Tag className="h-5 w-5 mr-2" />
-              태그 (선택사항)
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              게시글과 관련된 키워드를 추가하세요. 최대 10개까지 추가할 수 있습니다.
-            </p>
-            
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={handleTagInputKeyDown}
-                  placeholder="태그를 입력하고 Enter 또는 쉼표를 눌러주세요"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  maxLength={20}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddTag}
-                  disabled={!tagInput.trim() || form.tags.length >= 10}
-                  className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  추가
-                </button>
-              </div>
-              
-              {/* 추가된 태그들 */}
-              {form.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {form.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800"
-                    >
-                      #{tag}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-2 text-primary-600 hover:text-primary-800"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              
-              <div className="text-sm text-gray-500">
-                {form.tags.length}/10 태그
-              </div>
             </div>
           </div>
 
@@ -415,27 +402,6 @@ export default function CreatePostPage() {
                 >
                   <Link className="h-4 w-4" />
                 </button>
-                
-                <div className="border-l border-gray-300 h-6 mx-2"></div>
-                
-                <button
-                  type="button"
-                  onClick={handleFileSelect}
-                  disabled={uploadingImage}
-                  className="flex items-center space-x-1 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded disabled:opacity-50"
-                  title="이미지 업로드"
-                >
-                  <Image className="h-4 w-4" />
-                  <span className="text-sm">{uploadingImage ? '업로드 중...' : '이미지'}</span>
-                </button>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
               </div>
             </div>
 
@@ -469,28 +435,8 @@ export default function CreatePostPage() {
               )}
             </div>
           </div>
-
-          {/* 옵션 설정 */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">게시 옵션</h3>
-            <div className="space-y-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={form.is_anonymous}
-                  onChange={(e) => setForm(prev => ({ ...prev, is_anonymous: e.target.checked }))}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <span className="ml-2 text-sm text-gray-700">익명으로 게시</span>
-              </label>
-              
-              <p className="text-sm text-gray-500">
-                익명으로 게시하면 작성자 이름 대신 '익명'으로 표시됩니다.
-              </p>
-            </div>
-          </div>
         </form>
       </div>
     </div>
   );
-} 
+}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { likeRateLimit } from '../../../../../lib/rateLimit';
 
 // Firebase Admin 초기화
 if (getApps().length === 0 && process.env.FIREBASE_PROJECT_ID) {
@@ -36,6 +37,26 @@ export async function POST(
   try {
     const postId = params.id;
 
+    // Rate limiting 확인
+    const rateLimitResult = likeRateLimit(request);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { 
+          error: '너무 많은 요청입니다. 잠시 후 다시 시도해주세요.',
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString()
+          }
+        }
+      );
+    }
+
     // 인증 확인
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -46,6 +67,14 @@ export async function POST(
     }
 
     const token = authHeader.substring(7);
+    
+    if (!adminAuth) {
+      return NextResponse.json(
+        { error: 'Firebase Admin이 초기화되지 않았습니다.' },
+        { status: 500 }
+      );
+    }
+    
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(token);
@@ -60,7 +89,7 @@ export async function POST(
 
     // 게시글 존재 확인
     const { data: post } = await supabase
-      .from('posts')
+      .from('community_posts')
       .select('id, like_count')
       .eq('id', postId)
       .single();
@@ -74,7 +103,7 @@ export async function POST(
 
     // 기존 좋아요 확인
     const { data: existingLike } = await supabase
-      .from('post_likes')
+      .from('community_likes')
       .select('id')
       .eq('post_id', postId)
       .eq('user_id', userId)
@@ -86,7 +115,7 @@ export async function POST(
     if (existingLike) {
       // 좋아요 제거
       const { error: deleteError } = await supabase
-        .from('post_likes')
+        .from('community_likes')
         .delete()
         .eq('post_id', postId)
         .eq('user_id', userId);
@@ -100,7 +129,7 @@ export async function POST(
     } else {
       // 좋아요 추가
       const { error: insertError } = await supabase
-        .from('post_likes')
+        .from('community_likes')
         .insert({
           post_id: postId,
           user_id: userId,
@@ -117,7 +146,7 @@ export async function POST(
 
     // 게시글의 좋아요 수 업데이트
     const { error: updateError } = await supabase
-      .from('posts')
+      .from('community_posts')
       .update({
         like_count: newLikeCount,
         updated_at: new Date().toISOString()
